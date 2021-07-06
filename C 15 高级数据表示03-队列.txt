@@ -1,0 +1,164 @@
+1. 在C语言中使用抽象数据类型方法编程包含以下3个步骤
+    1) 以抽象, 通用的方式描述一个类型, 包含该类型操作.
+    2) 设计一个函数接口表示这个新类型
+    3) 编写具体代码实现这个接口
+
+2. 队列
+    队列(queue)是具有两个特殊属性的链表.
+    1. 新项只能添加到链表的末尾.
+    2. 只能从链表的开头移除项.
+    队列是一种"先进先出"(first in, first out, FIFO)的数据形式, 就像排队买票一样.
+    注意要与栈(stack)进行区分, 这是内存中处理数据的方式, 遵守"后进先出"(LIFO).
+
+    1) 建立抽象
+        类型名
+            队列
+        属性特征
+            可以存储一系列项, 遵循先进先出
+        执行操作
+            初始化队列为空
+            确定队列为空
+            确定队列已满
+            确定队列中的项数
+            在队列末尾添加项
+            在队列开头删除或恢复项
+            清空队列
+
+    2) 定义接口
+        接口的定义放在queue.h中. 使用typedef将内容结构定义在Item中, 将数据结构定义在Queue中.
+        相应的具体操作实现放在queue.c中.
+        (1) 数据结构
+            首先考虑使用数组. 其方便使用, 向末尾添加项很简单. 
+            但是如何从队列的开头删除项, 类比排队买票的队列, 从队列头删除一个项包括拷贝数组首元素的值和把数组剩余各项依次向前移动一个位置, 会造成大量计算.
+            解决以上问题的一个好办法是使队列成为环形. 这意味着把数组的首尾巴相连, 即数组的首元素紧跟在最后一个元素后面. 
+            这样, 当到达数组末尾时, 如果首元素空出, 就可以把新添加的项存储到这些空出的元素中. 当然还要做一些标记, 以免尾端超过首端.
+            所以还是链表好, 删除首项不用移动其余元素, 只需重置头指针指向新的首元素即可.
+            1.1) 数据内容封装
+                这里就使用队列存一些int数据
+                typedef int Item;
+            1.2) 数据结构封装
+                链表由节点组成, 定义一个节点类型
+                typedef struct node {
+                    Item * item;
+                    struct node * next;
+                } Node;
+            1.3) 组成队列
+                对队列而言, 要保存首尾项, 这可以使用指针来完成. 另外, 可以用一个计数器来记录队列中的项数.
+                typedef struct queue {
+                    Node * front;   // 指向队列首项的指针
+                    Node * rear;    // 指向队列尾项的指针
+                    int items;      // 队列中的项数
+                } Queue;
+
+        (2) 操作数据结构
+            首先, 考虑初始化. 这涉及改变Queue类型, 所以该函数应该以Queue的地址作为参数
+            void InitializeQueue(Queue * pq);
+            队列是否为空或已满的函数, 返回true和false. enum {true, false}; 
+            这两个方法不改变队列, 要用const修饰原变量.
+            考虑到如果队列保存了很多数据, 函数传参使用值传递, 会浪费很多内存, 依然传递指向队列的指针.
+            bool QueueIsFull(const Queue * pq);
+            bool QueueIsEmpty(const Queue * pq);
+            队列中的项数, 返回队列的项数. 不能改变原变量, 使用const修饰. 为了节省资源, 同样传递指针作为函数参数.
+            int QueueItemCount(const Queue * pq);
+            在队列末尾添加涉及标识项和队列. 需要更改队列. 添加成功返回true, 否返回false
+            bool EnQueue(Item item, Queue * pq);
+            删除项, 有多种方法. 如果把项定义为结构或一种基本类型, 可以通过函数返回待删除项. 函数的参数可以使Queue类型或指向Queue的指针
+            Item DeQueue(Queue q);
+            或
+            bool DeQueue(Item *pitem, Queue * pq);
+            清空队列
+            void EmptyTheQueue(Queue * pq);
+    
+    3) 实现接口
+        在queue.c中实现queue.h中定义的操作.
+
+        首先, 初始队列为空, 这里空是指把指向队列首项和尾项的指针设置为NULL, 并把项数items设置为0
+        void InitializeQueue(Queue * pq) {
+            pq->front = pq->rear = NULL;
+            pq->items = 0;
+        }
+        通过检查items来判断队列是否已满, 为空, 还有返回项数
+        bool QueueIsFull(const Queue * pq) {
+            return pq->items == MAXQUEUE;
+        }
+        bool QueueIsEmpty(const Queue * pq) {
+            return pq->items == 0;
+        }
+        int QueueItemCount(const Queue * pq) {
+            return pq->items;
+        }
+
+        在队列末尾添加项, 需要如下步骤
+            1. 创建一个新节点
+            2. 把项拷贝到节点中
+            3. 设置节点的next指针为NULL, 表明该即诶但是最后一个节点
+            4. 设置当前尾节点的next指针指向心结点, 把新节点链接到队列中
+            5. 把rear指针指向新节点, 以便找到最后的节点
+            6. 项数加1
+        还要考虑队列是否为空, 为空就应把front指针设置为指向新节点. 如果队列中只用一个节点, 那么这个节点既是首节点, 也是尾结点.
+        也要考虑函数能不能为节点分配所需的内存, 防止内存不足的情况.
+        bool EnQueue(Item item, Queue  * pq) {
+            Node * new_node;   // 将会向队列中添加的新节点
+
+            if(QueueIsFull(pq))
+                return false;
+            
+            new_node = (Node *) malloc(sizeof(Node));
+            if (new_node == NULL){
+                perror("无法分配内存.);
+                exit(1);
+            }
+
+            CopyToNode(item, new_node);    // 新的内容拷贝到新节点中
+            new_node->next = NULL;
+            if (QueueIsEmpty(qp))   // 检查当前的队列是否为空队列
+                pq->front = new_node;   // 为空队列将新项置于首端
+            else
+                pq->rear->next = new_node;   // 队列不为空将新项置于尾项后
+            pq->rear = new_node;   // 记录新的尾项
+            pq->items += 1;   // 项数计数+1
+
+            return true;
+        }
+
+        将内容拷贝到Node中的函数CopyToNode, 这是一个静态函数
+        static void CopyToNode(Item item, Node * pnode) {
+            pnode->item = item;
+        }
+
+        从队列首端删除项, 需要如下步骤
+            1. 把项拷贝到给定的变量中
+            2. 释放空出的节点使用的内存空间
+            3. 重置首指针指向队列中的下一项
+            4. 如果删除最后一项, 把首指针和尾指针都重置为NULL
+            5. 项数减1
+        bool DeQueue(Item * pitem, Queue * pq) {
+            Node * temp_node;   // 将从队列中删除的已有节点
+
+            if (QueueIsEmpty(pq))
+                return false;
+
+            CopyToItem(pq->front, pitem);
+            temp_node = qp->front;   // 将temp_node指向要删除的队列首端
+            pq->front = pq->front->next;   // 将队列的首端重新指向后一个
+            free(temp_node);   // 清除temp_node指向原队列首端的内存
+            pq->items -= 1;   // 项数计数-1
+
+            if (pq->items == 0)   // 如果没有项了, 尾项也要设置为NULL
+                pq->rear = NULL;
+
+            return true;
+        }
+        要注意两点, 一, 删除最后一项时, 代码中并未显式设置front指针为NULL, 因为已经设置front指针指向被删除节点的next指针. 
+        如果该节点是最后一个节点, 那么它的next指针就为NULL.
+        二, 代码使用临时指针temp_node存储待删除节点的位置. 因为指向首节点的正式指针(pt->front)被重置为指向下一个节点, 所以如果没有临时指针, 程序就不知道该施放哪块内存
+
+        清空队列, 就循环调用DeQueue()函数知道队列为空
+        void EmptyTheQueue(Queue * pq) {
+            Item dummy;
+            while (!QueueIsEmpty(pq))
+                DeQueue(&dummy, pq);
+        }
+
+    注意, 定义ADT接口后, 应该只使用接口函数处理数据类型. 
+          如果在一个使用ADT的程序中, 决定直接操控队列的某些部分, 有可能破坏接口包中函数之间的协作关系.

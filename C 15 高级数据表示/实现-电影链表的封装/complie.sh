@@ -1,0 +1,1 @@
+gcc list.c film.c -o run.out

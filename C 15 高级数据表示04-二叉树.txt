@@ -1,0 +1,363 @@
+数组和链表
+    数组是一串连贯的内存
+    链表是通过指针串起来的分散的内存
+
+    数组可以通过下标, 进行随机访问(random access)
+    链表只能从首项开始, 进行顺序访问(sequental access)
+
+    数组在编译时就需要确定大小
+    链表在运行时确定大小
+
+    数组删除或添加元素需要手动移动补全空位
+    链表删除或添加元素不需要处理空位
+
+在C中, 没有那么多的容器类型, 想要的话往往需要自己手写
+偶尔的插入和删除项, 但是需要经常的进行查找, 使用数组会更好
+频繁的插入和删除项导致经常的调整大小, 而不需要经常查找, 使用链表会更好
+既要频繁的插入和删除项, 还要经常的进行查找, 使用二分查找树
+
+二分查找: 首先, 把待查找的项称为目标项, 而且假设列表中的各项按一定顺序排序.
+            然后, 比较列表中的中间项和目标项.
+                如果两者相等, 查找结束.
+                如果中间项排在目标项前面, 则目标项一定在后半部分项中
+                如果中间项排在目标项后面, 则目标项一定在前半部分项中
+            无论那种情况, 两项比较的结果都确定了下次查找的范围只有列表的一半.
+            接着, 继续使用这种方法, 把需要查找的剩下一半的中间项与目标项比较.
+            同样这种方法会确定下一次查找的范围使当前范围的一半. 以此类推, 直到找到目标项或发现列表中没有目标项.
+            n次比较能处理2ⁿ-1个元素数组
+
+二叉树
+    二叉树的每个节点都包含一个项和两个指向其它节点(子节点)的指针.
+    二叉树中的每个节点都包含两个子节点, 称左节点和右节点.
+    一般而言, 每级都有上一级和下一级. 
+    如果二叉树是满的, 那么每一级的节点数都是上一级节点数的两倍.
+    没有父节点的节点叫做根(root), 每个节点与其子代节点构成一个子树(subtree), 没有子节点的节点叫做叶节点(leaf).
+    遍历的操作复杂度一般为O(logN).
+
+二叉查找树
+    二叉查找树是一种结合了二分查找策略的链接结构.
+    顺序上, 左节点的项在父节点的前面, 右节点的项在父节点的后面.
+    左<根<右, 都和根节点比较, 靠前的放左子节点, 靠后的放右子节点.
+          2(中)
+         ╱    ╲
+       1(左)  3(右)
+    进一步而言, 所有可以追溯其祖先回到一个父节点的左节点的项, 都在该父节点项的前面; 所有以一个父节点的右节点为祖先的项, 都在该父节点项的后面.
+    简单的说, 左节点都比其祖先节点按顺序排靠前, 右节点都比其祖先节点排序靠后.
+    假设要在二叉树中查找一个项(即目标项). 
+        如果目标项在根节点项的前面, 则只需要查找左子树.
+        如果目标项在根节点项的后面, 则只需要查找右子树.
+    因此每次比较就排除半个树.
+    假设查找左子树, 这意味着目标项与左子节点项比较. 如果目标项在左子节点项的前面, 则只需要查找其后代节点的左半部分, 以此类推.
+    与二分查找法类似, 每次比较都能排除一半的可能匹配项.
+
+二叉树 ADT
+    1) 建立抽象
+        二叉查找树
+        属性特征:
+            二叉树要么是空节点的集合(空树), 要么是有一个根节点的节点集合
+            每个节点都有两个子树, 叫做左子树和右子树
+            每个子树本身也是一个二叉树, 也可能是空树
+            二叉查找树是一个有序的二叉树, 每个节点包含一个项
+            左子树的所有项都在根节点项的前面, 右子树的所有项都在根节点项的后面
+        需要的操作:
+            初始化树为空
+            确定树是否为空
+            确定树是否已满
+            确定树中的项数
+            在树中添加一个项
+            在树中删除一个项
+            在树中查找一个项
+            在树中访问一个项
+            清空树
+
+    2) 定义接口
+        原则上, 可以用多种方法实现二叉查找树, 甚至可以通过操作数组下标用数组来实现.
+        但是, 实现二叉查找树最直接的方法是通过指针动态分配链式节点.
+        typedef SOMETHING Item;
+
+        typedef struct tree_node{
+            Item item;
+            struct tree_node * left;
+            struct tree_node * right;
+        } TrNode;
+
+        typedef struct tree {
+            TrNode * root;
+            int size;
+        } Tree;
+
+        每个TrNode节点包含一个项, 一个指向左节点的指针和一个指向右子节点的指针, 还有实际内容Item.
+        把Tree 定义为指向TrNode的指针类型, 这样只需要知道根节点的位置就可以访问整个树.
+    
+    3) 实现接口
+        (1) 添加项
+            首先, 检查该树是否有空间放得下一个项.
+            接下来, 因为该定义的二叉树要求各项不重复, 所以检查所添加的项是否已经存在.
+            以上通过后, 便可以创建一个新TrNode节点, 把待添加项拷贝到该节点的对应结构中, 并设置这个节点的左右指针都为NULL. 说明该节点没有子节点.
+            然后, 更新Tree结构的size成员, 统计新增加一项.
+            之后, 找出应该把这个新节点放在树中的哪个位置. 如果树为空, 则应该设置根节点指针指向该新节点. 否则, 遍历树找到合适的位置放置该节点.
+            bool AddItem(const Item * pitem, Tree * ptree){
+                TrNode * new_node;
+                // 是否空间方的下一个项
+                if (TreeIsFull(ptree)){
+                    perror("当前树已满.");
+                    return false;
+                }
+                // 查找所要添加的项是否已存在
+                if (SeekItem(pitem, ptree).child != NULL){
+                    perror("但前项已存在.");
+                    return false;
+                }
+                // 创建新节点
+                new_node = MakeNode(pitem);
+                if (new_node == NULL){
+                    perror("创建新节点失败.");
+                    return false;
+                }
+                // 项数size加1
+                ptree->size += 1;
+                // 找出要添加到的位置
+                if (ptree->root == NULL)   // 当前树为空, 新节点设置为根
+                    ptree->root = new_node;
+                else                       // 当前树不为空, 在树中相应位置添加一个节点
+                    AddNode(new_node, ptree->root);
+                // 成功
+                return true;
+            }
+            以上 MakeNode(), AddNode(), SeekItem() 函数不是Tree类型的公共接口的一部分. 他们使隐藏在tree.c文件中的静态函数, 处理实现的细节.
+
+            MakeNode()函数处理动态内存分配和初始化新的TrNode节点.
+            该函数的参数使指向新项的指针, 其返回值是指向新节点的指针. 如果malloc无法分配所需的内存, 则返回空指针. 只有成功分配了内存, 该函数才会初始化新节点.
+            static TrNode * MakeNode(const Item item){
+                TrNode * new_node;
+                new_node = (TrNode *) malloc(sizeof(TrNode));
+                if (new_node != NULL){
+                    new_node->item = *pitem;
+                    new_node->left = NULL;
+                    new_node->right = NULL;
+                }
+            }
+
+            AddItem()是二叉查找树包中第二麻烦的函数. 
+            他必须确定新节点的位置, 然后添加新节点.
+            首先, 该函数要比较新项和根项, 以确定应该把新项放在左子树还是右子树中.
+                比较方式上, 如果新项是一个数字, 使用"<"和">"进行比较, 如果新项是一个字符串, 则使用strcmp()函数进行比较.
+                但如果Item有多个记录内容, 且都需要进行比较, 那就需要自定义用于比较的函数.
+                如果新项应该放在左子树中, 定义使用ToLeft()函数, 成功返回true. 如果新项应该放在右子树中, 定义使用ToRight()函数, 成功返回true.
+                这两个函数分别相当于"<"和">".
+            判断完成后, 假设把新项放在左子树中, 新定义一个AddNode()函数, 用来添加新节点.
+                如果左子树为空, AddNode()函数只需让左子节点指针指向新项即可.
+                如果左子树不为空, AddNode()函数应该把新项和左子节点中的项做比较, 以确定新项应该放在子节点的左子树还是右子树.
+                这个过程一直持续到函数发现一个空子树为止, 并在此添加新节点.
+
+            递归是一种实现这种查找过程的方法, 即把AddNode()函数应用于子节点, 而不是根节点.
+            当左子树或右子树为空时, 即当root->left或root->right为NULL时, 函数的递归调用序列结束.
+            注意, root使指向当前子树顶部的指针, 所以每次递归调用他都指向一个新的下一级子树.
+            static void AddNode(TrNode * new_node, TrNode * root){
+                if (ToLeft(&new_node->item, &root->item)){
+                    if (root->left == NULL)      // 如果是空子树, 在此处添加节点
+                        root->left == new_node;
+                    else                         // 否则, 处理该子树
+                        AddNode(new_node, root->left);
+                } else if (ToRight(&new_node->item, &root->item)){
+                    if (root->right == NULL)
+                        root->right = new_node;
+                    else
+                        AddNode(new_node, root->right);
+                } else {
+                    perror("AddNode函数定位出错.");
+                    exit(1);
+                }
+                
+            }
+
+            现在以比较字符串为例子, 且Item中有两个字符串内容. 首先比较内容1, 然后比较内容2.
+            typedef struct item {
+                char content1[63];
+                char content2[63];
+            } Item;
+            int strcmp(const char * str1, const char * str2 )函数, str1表示的字符串在str2表示的字符串起前面, 该函数则返回负数.
+            如果两个字符串相同, 则该函数返回0. 如果str1表示的字符串在str2表示的字符串后面, 该函数返回正数.
+            static bool ToLeft(const Item * pitem1, const Item * pitem2){
+                int compare;
+                if ( ( compare=strcmp(pitem1->content1, pitem2->content1) ) < 0)   // 内容1小于, 应该放在左边
+                    return true;
+                else if ( compare==0 && strcmp(pitem1->content2, pitem2->content2) < 0)   // 内容2小于, 应该放在左边
+                    return true;
+                return false; 
+            }
+
+            同理 static bool ToRight(const Item * pitem1, const Item * pitem2);
+
+        (2) 查找项
+            SeekItem()函数用于查找, 其被众多函数所依赖.
+            在DeleteItem()使用其时, 有一个额外的要求, DeleteItem()函数要知道待删除的父节点, 以便在删除子节点后更新父节点指向子节点的指针.
+            因此SeekItem()函数返回的结构包含两个指针, 一个指向包含项的节点(未找到指定项则为NULL), 另一个指向父节点(如果该节点为根节点, 即没有父节点, 则为NULL).
+            typedef struct pair {
+                TrNode * parent;
+                TrNode * child;
+            } Pair;
+            SeekItem()也使用ToLeft()和ToRight()在树中导航.
+            开始时, 设置pair.child指针指向该树的根节点.
+            然后沿着目标项应在的路径重置pair.child指向后续的子树. 同时设置pair.parent指向后续的父节点.
+                如果没有找到匹配的项, pair.child则被设置为NULL.
+                如果在根节点找到匹配的项, 则设置pair.parent为NULL, 因为根节点没有父节点.
+            static Pair SeekItem(const Item * pitem, const Tree * ptree){
+                Pair lookfor;
+                lookfor.parent = NULL;
+                lookfor.child = ptree->root;   // 初始时, child指针指向该树的根节点, parent为NULL.
+
+                if (lookfor.child == NULL)   // 树为空
+                    return lookfor;
+
+                while (lookfor.child != NULL){
+                    if (ToLeft(pitem, &(lookfor.child->item))){   // 输入的item小于当前所指树中的item, 往下一级继续比较
+                        lookfor.parent = lookfor.child;
+                        lookfor.child = lookfor.child->left;
+                    } else if (ToRight(pitem, &(lookfor.child->item))){   // 输入的item大于当前所指树中的item, 往下一级继续比较
+                        lookfor.parent = lookfor.child;
+                        lookfor.child = lookfor.child->right;
+                    } else                                        // 如果前两种情况都不满足, 则必定是相等的情况, 退出循环
+                        break;
+                }
+
+                return lookfor;   // 成功, 记录输入item和树中内容相同的节点的地址的结构体变量
+            }
+
+            有了SeekItem()函数, 编写InTree
+            bool InTree(const Item * pitem, const Tree * ptree){
+                return (SeekItem(pitem, ptree).child == NULL) ? false : true;
+            }
+
+        (3) 删除项
+            删除项是最复杂的任务.
+            删除树中的项, 必须重新连接剩余的子树.
+                (1) 对于待删除的叶节点(没有子节点). 
+                    只需要把父节点中的指针内置为NULL, 并使用free()函数释放已删除节点所占用的内存.
+                (2) 删除带有一个子节点的节点.
+                    该行为会导致其子树与其他部分分离. 
+                    为了修正这种情况, 要把被删除节点的父节点中存储该节点的地址更新为该节点子树的地址.
+                (3) 删除有两个子树的节点. 
+                    其中一个子树(如左子树)可连接在被删除节点之前连接的位置. 但是如何处理另一个子树.
+                    要按照树的基本设计: 左子树的所有项都在父节点项的前面, 右子树的所有项都在父节点的后面.
+                    
+                    某个节点的前驱节点--是第一个小于该节点的, 即中序遍历紧靠在左边的值
+                    某个节点的后继节点--是第一个大于该节点的, 即中序遍历紧靠在右边的值
+
+                    找前驱节点, 待删除节点左子树的最右节点(左子树的最大节点, 中序遍历紧靠待删除值左边的), 将前驱节点的值替换待删除的值
+                    如果前驱节点有左子树(不可能存在右子树, 因为其本身就是最右), 将该右子树接到前驱节点父节点的右边
+                    或
+                    找后继节点, 待删除节点右子树的最左节点(右子树的最小节点, 中序遍历紧靠待删除值右边的), 将后继节点的值替换待删除的值
+                    如果后继节点有右子树(不可能存在左子树, 因为其本身就是最左), 将该右子树接到后继节点父节点的左边
+                    最后释放后继节点
+            
+            1. 删除一个节点
+                分为两个任务, 第一, 把特定项与待删除节点关联, 第二, 删除节点. 两种都必须修改待删除父节点的指针.
+                应该注意: 一, 该程序必须标识待删除节点的父节点. 二, 为了修改指针, 代码必须把该指针的地址传递给执行删除任务的函数.
+
+                要修改的指针本身是TrNode*类型, 即指向TrNode的指针. 删除节点的函数是在使用TrNode指针的函数中使用的.
+                所以这里使用的函数参数使该指针的地址, 所以参数的类型使TrNode**, 即指向指针的指针.
+                static void DeleteNode(TrNode **ppnode){
+                    /* ppnode是指向目标节点的父节点指针成员的地址 */
+                    TrNode * temp;
+                    if ( (*ppnode)->left == NULL){    // 左子树为空
+                        temp = *ppnode;
+                        *ppnode = (*ppnode)->right;   // 当前节点重新连接到其右子树
+                        free(temp);
+                    } else if ( (*ppnode)->right == NULL){   // 右子树为空
+                        temp = *ppnode;
+                        *ppnode = (*ppnode)->left;           // 当前节点重新连接到其左子树
+                        free(temp);
+                    } else {                          // 被删除的节点有两个子节点
+                        /* 找到重新连接右子树的位置 */
+                        for (temp = (*ppnode)->left; temp->right != NULL; temp=temp->right)
+                            continue;
+                        temp->right = (*ppnode)->right;
+                        temp = *ppnode;
+                        *ppnode = (*ppnode)->left;   // 当前节点重新连接到其左子树
+                        free(temp);
+                    }
+                }
+
+                无子节点的节点可作为无左子节点的特列.
+                如果该节点没有左子节点, 程序就将右子节点的地址赋给其父节点的指针.
+                如果该节点也没有右子节点, 则该指针为NULL.
+                有两个子节点的情况, 首先在for循环中通过temp指针从左子树的右半部分向下查找一个空位.
+                找到空位后, 把右子树连接于此. 然后, 再用temp保存被删除节点的位置. 接下来, 把左子树连接到被删除节点的父节点上, 然后释放temp指向的原节点内存.
+
+            2. 删除一个项
+                可以使用SeekItem()函数来完成. 该函数返回一个结构(内含两个指针, 一个指针指向父节点, 一个指针指向包含特定项的节点).
+                然后就可以通过父节点的指针获得相应的地址传递给DeleteNode()函数.
+                bool DeleteItem(const Item * pitem, Tree * ptree){
+                    Pair lookfor;
+                    lookfor = SeekItem(pitem, ptree);
+                    if (lookfor.child == NULL)
+                        return false;
+                    if (lookfor.parent == NULL)   // 删除根节点
+                        DeleteNode(&ptree->root);
+                    else if (lookfor.parent->left == lookfor.child)
+                        DeleteNode(&lookfor.parent->left);
+                    else
+                        DeleteNode(&lookfor.parent->right);
+                    ptree->size --;
+
+                    return true;
+                }
+
+                如果lookfor.child是NULL, 表明未找到指定项, DeleteItem()函数退出, 并返回false.
+                如果找到了指定的Item, 分三种情况.
+                一, lookfor.parent的值为NULL, 这意味着该项在根节点中. 在这种情况下, 不用更新父节点, 但是要更新Tree结构中根节点的指针.
+                因此, 函数该函数把该指针的地址传递给DeleteNode()函数.
+                二,三, 否则, 程序判断待删除节点是其父节点的左子节点还是右子节点, 然后传递合适指针的地址.
+
+                注意, 公共接口函数DeleteItem()处理的是最终用户关心的问题(项和树), 而隐藏的DeleteNode()函数处理的是与指针相关的实质任务.
+
+        (4) 遍历树
+            每个节点都有两个分支. 这种分支特性很适合使用分而治之的递归来处理.
+            对于每一个节点, 执行遍历任务的函数都要做如下工作.
+                处理节点中的项
+                处理左子树(递归调用)
+                处理右子树(递归调用)
+            可以把遍历分成两个函数来完成, Traverse()和InOrder(). 注意, InOrder()函数处理左子树, 然后处理项, 最后处理右子树.
+            这种遍历树的顺序是按字母排序进行.
+            void Traverse(const Tree * ptree, void (*pfunc)(Item item)){
+                if (ptree != NULL)
+                    InOrder(root->left, pfunc);
+            }
+
+            这里使用中序遍历的方法.
+            static void InOrder(const TrNode * root, void (*pfunc)(Item item)){
+                if (root != NULL){
+                    InOrder(root->left, pfunc);
+                    (*pfunc)(root->item);
+                    InOrder(root->right, pfunc);
+                }
+            }
+
+        (5) 清空树
+            清空树基本上和遍历树的过程相同, 即清空树的代码也要访问每个节点, 而且要用free()函数释放内存. 还要重置Tree类型结构的成员, 表明该树为空.
+            DeleteAll()函数负责处理Tree类型的结构, 把释放内存的任务交给DeleteAllNode()函数.
+            DeleteAllNode()与InOrder()函数的构造相同, 它存储了指针的值root->right, 使其在释放根节点后任然可用.
+            void DeleteAll(Tree * ptree){
+                if (ptree != NULL)
+                    DeleteAllNodes(ptree->root);
+                ptree->root = NULL;
+                ptree->size = 0;
+            }
+
+            static void DeleteAllNodes(TrNode * root){
+                TrNode * pright;
+                if (root != NULL){
+                    pright = root->right;
+                    DeleteAllNodes(root->left);
+                    free(root);
+                    DeleteAllNodes(pright);
+                }
+            }
+
+树的思想
+    二叉查找树也有一些缺陷. 例如, 二叉查找树只有在满员(或平衡)时效力最高, 为O(logN), 如果只有左或右子树, 那么就像一个链表, 遍历复杂度O(n). 
+
+
+例子
+    开发维护Nerfville宠物俱乐部的花名册, 每一项都包含宠物名和宠物的种类.
