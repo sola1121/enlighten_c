@@ -105,6 +105,16 @@ bool search_node(List * head, int data){
 }
 
 
+// 遍历链表
+void show_list(List * head){
+    while(head != NULL){
+        printf("%-4d", head->num);
+        head = head->next;
+    }
+    putchar('\n');
+}
+
+
 // 创建链表(初始化链表)
 List * create_list(int array[], int arr_len){
     List * head = (List *) malloc(sizeof(List));   // 会创建一个空内存, 且不为NULL, num被赋予值0, 下面得初始化
@@ -118,13 +128,19 @@ List * create_list(int array[], int arr_len){
 }
 
 
-// 遍历链表
-void show_list(List * head){
-    while(head != NULL){
-        printf("%-4d", head->num);
-        head = head->next;
+// 清空链表
+bool clear_list(List * head){
+    List * prev, * curr;
+    prev = curr = head;
+
+    while(curr != NULL){
+        prev = curr;
+        curr = curr->next;
+        free(prev);
     }
-    putchar('\n');
+    free(curr);
+
+    return true;
 }
 
 
@@ -151,5 +167,7 @@ int main(void) {
     printf("删除 %d, 返回 - %d\n", to_delete, 1);
     show_list(head);
     
+    clear_list(head);
+
     return 0;
 }

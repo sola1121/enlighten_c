@@ -8,6 +8,11 @@
 # include "stdio.h"
 
 
+int fmax(int a, int b){
+    return a>b ? a : b;
+}
+
+
 // 逐位相交
 /*
 计算 123+912，我们从低位到高位依次计算 3+2、2+1 和 1+9。
