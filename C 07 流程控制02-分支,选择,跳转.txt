@@ -1,0 +1,161 @@
+分支语句(branching statement) 
+if...else...
+
+    if ( expression )
+        statement
+
+
+    if ( expression )
+        statement
+    else
+        statement
+
+
+    if ( expression1 )
+        statement
+    else if ( expression2 )
+        statement
+    else if ( expression3 )
+        statement
+    ...
+    else
+        statement
+
+    对expression关系表达式求值, 真(非零)则执行紧跟的statement, 否则跳过该statement
+    statement可以是一条简单语句或复合语句, 多条语句得使用花括号扩起来作为一个语句块
+    如果所有expression都为假, 则执行else部分
+
+    注意:
+        对于有多个分支的if语句, 当遇到条件表达式为真是, 执行完对应分支内语句后, 就会跳出整个if分支了
+        不会执行之后的分支, 即使之后的条件表达式也为真
+    
+    if嵌套的时候, C99标准要求编译器最少支持127层套嵌
+
+    如果没有花括号, else与离他最近的if匹配, 除非最近的if被花括号括起来
+    如:
+        if (条件)
+            语句
+        if (条件)   // 与下面的else配对
+            语句
+        else
+            语句
+
+        if (条件) {   // 与else配对
+            语句
+            if (条件)
+                语句
+        } else
+            语句
+
+
+选择语句(selection statement)
+switch...case...default
+
+
+    switch ( expression ){
+        case constant1:
+            statement1
+            break;
+        case constant2:
+            statement2
+            break;
+        ...
+        default:
+            statement
+    }
+
+    switch语句圆括号中的测试表达式的值应该是一个整数值(包括char类型)
+    case标签必须是整数类型(包括char类型)的常量或整型常量表达式(即表达式中只包含整型常量)
+    default标签可选, 用于没有找到匹配标签时执行
+
+    对紧跟在关键字switch后圆括号中的表达式求值
+    然后程序扫描标签, 即case后的常量
+    当发现一个与表达式求值相匹配的常量值后, 程序跳转到那一行.
+    如果没有匹配到任何标签, 有default就跳转到default标签行, 没有default就继续执行整个switch语句后的语句
+    注意:
+        没有break语句, 就会从匹配到的标签开始执行到switch末尾
+        switch的判断测试表达式值必须是一个整数值
+        不能用变量做case标签, 只能使用整数常量
+
+
+    用于在多个选项中进行选择. 一般可以使用分支语句的, 也可以使用选择语句来完成, 但大多数情况下使用选择语句更方便.
+
+
+contiune 语句
+    跳过当前循环迭代的剩余部分, 并开始下一轮迭代. 
+    如果continue语句在嵌套循环内, 则只会影响包含该语句的内层循环
+
+    continue还可以用作占位符
+    如:
+        while (getchar() != '\n')
+            ;
+        循环从输入中读取字符, 函数返回值并没有被赋予变量, 于是就会丢弃包括最后出现用于判断的换行符的所有字符
+        即跳过输入行的其余部分
+
+        while (getchar() != '\n')
+            contiune;
+
+    对于while和do while 循环, 执行continue语句后的下一个行为是对循环的测试表达式求值, 如有必要会进入下一轮迭代.
+
+    对于for循环, 执行continue语句后的下一个行为是对更新表达式求值, 然后是对循环测试表达式求值, 如有必要会进入下一轮迭代.
+
+    
+break 语句
+    终止包含它的循环或switch语句的剩于部分, 并继续执行跟在循环或switch后面的其他语句
+
+    如果break语句在嵌套循环内, 则只会跳出包含该语句的当前循环
+
+    执行完break语句后会直接执行循环后的第一条语句, 不会执行for的更新表达式, 更不会再执行任何循环的测试表达式.
+
+
+
+goto 语句
+
+    goto label;
+    ...
+    label: statement
+
+    使程序跳转至相应标签, 并会在从那开始执行.
+    冒号用于分隔标签和标签语句.
+    标签语句可以出现在goto前面或后面
+
+    goto语句有两部分组成, goto 和 自定义的标签名
+    注意:
+        标签名的命名应该遵守变量命名规则
+
+    goto语句易造成混乱, 应谨慎使用
+    
+    例:
+        if (num1 > 3)
+            goto tag_1;
+        else
+            goto tag_2;
+        tag_1: sum = num1 + num2;
+        tag_2: sum = num1 + num3;
+    
+    使用场景
+        用来在两段迥然不同的代码中二选一
+        创建不确定循环, 实际上可以使用循环代替
+        跳转到循环末尾, 并开始下一轮迭代
+        跳出循环
+        出现问题时从嵌套循环中跳出(一条break语句只能跳出当前循环)
+    
+    实际上break和continue就是goto的特殊形式.
+
+    例, 与用于处理出现问题, 跳转到帮助
+        while (num > 0) {
+            for (rw=0; rw<100; tw++) {
+                for (col=0; col<50; col++) {
+                    其他语句
+                    if (出现问题)
+                        goto error_raise;
+                    其他语句
+                }
+                其他语句
+            }
+            其他语句
+        }
+        其他语句
+
+        error_raise: 语句
+

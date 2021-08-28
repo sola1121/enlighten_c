@@ -1,0 +1,14 @@
+void pound(int num);
+
+函数原型 prototype 声明中
+
+
+如果函数不接受任何参数, 函数头的圆括号中应该写上关键字void.
+
+函数声明是作为声明的参数被称为形式参数(formal argument 或 formal parameter), 简称形参
+
+函数调用传递的值称为实际参数(actual argument 或 actual parameter), 简称实参
+
+可以说形参是变量, 而实参是在调用时提供的参数实际值
+
+变量名是函数私有的, 即在函数中定义的变量名不会和别处的相同名称发生冲突
