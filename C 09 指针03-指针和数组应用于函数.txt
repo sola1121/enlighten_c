@@ -1,0 +1,224 @@
+函数中使用指针处理数组
+    编写一个处理数组的函数, 其将数组中所有的元素相加并返回值.
+    这就涉及到遍历数组, 需要知道数组的开始, 和到多少个元素结束.
+
+    那么可以定义一个函数, 第一个形参告诉函数数组的地址和数据类型, 第二个形参告诉函数数组中元素的个数.
+    关于函数的形参, 需要注意, 只有在函数原型或函数定义头中, 才可以用 类型名 array[] 来代替 类型名 * array.
+
+    因为数组名是该数组首元素的地址, 作为实际参数的数组名要求形式参数是一个与之匹配的指针.
+    只有在这种情况下, C才会将如 int array[]和 int * array解释成一样.
+
+    以下四种函数原型等价
+        long sum_array(int * array, unsigned int len);
+        long sum_array(int *, unsigned int);
+        long sum_array(int array[], unsigned int len);
+        long sum_array(int [], unsigned int);
+
+    对应的函数定义形式不能省略参数名, 有以下两种定义写法
+        long sum_array(int * array, unsigned int len)
+        {
+            long ret = 0;
+
+            for (int i=0; i<len; i++)
+                ret += *(array+i);   // 等价 array[i]
+            
+            return ret;
+        }
+
+        long sum_array(int array[], unsigned int len)
+        {
+            long ret = 0;
+
+            for (int i=0; i<len; i++)
+                ret += array[i];   // 等价 *(array+i)
+            
+            return ret;
+        }
+
+
+函数中使用指针做函数形参
+    实现处理遍历数组, 不仅可以使用上述指针指向数组起始位置, 在用一个整数表明要遍历数组多长.
+    还可以用两个指针, 一个指向要遍历开始位置, 另一个指向遍历的结束位置. 直接使用关系运算符判断是否遍历结束.
+
+    long sum_array(int * pt_start, int * pt_end)
+    {   
+        long ret = 0;
+
+        while (pt_start < pt_end){
+            ret += *pt_start;
+            pt_start ++;
+        }
+        
+        return ret;
+    }
+
+    long sum_array(int pt_start[], int * pt_end[])
+    {   
+        long ret = 0;
+
+        while (pt_start < pt_end) {
+            ret += *pt_start;
+            pt_start ++;
+        }
+
+        return ret;
+    }
+
+    调用
+        long total = sum_array(array, array + SIZE);
+    SIZE是定义的数组长度常数, array + SIZE 让 pt_end指向了数组最后一个元素的后面.
+    C保证在给数组分配空间时, 窒息哪个数组后面的第一个位置的指针仍是有效的指针.
+    这保证了while的测试条件是有效的, 因为在最有一次执行pt_start++的时候, 其指向的地址就是pt_end了
+
+    若想要pt_end指针指向数组最后一个元素而不是数组末尾的下一个位置, 可以如下调用
+        long total = sum_array(array, array + SIZE - 1);
+    这时对应的循环判断应该为 while(pt_start <= pt_end)
+
+    虽然C保证了数组末尾后一个位置有效, 但是数组为显式在此位置上存储任何内容, 所以程序不能访问该位置
+
+    其中ret的赋值还可以写成
+        ret += *pt_start++;
+    一元运算符*和++的优先级相同, 但结合律从右往左, 所以pt_start先求值, 然后才是*pt_start.
+    也就是说, 指针pt_start先递增后指向. 
+    使用后缀形式(即pt_start++)意味着先把指针指向位置上的值加到ret上, 然后再递增指针.
+    等同于使用(*pt_start)++, 先使用pt_start指向的值, 再递增指针.
+    如果使用前缀*++pt_start, 顺序就会反过来, 先递增指针, 再使用指针指向位置上的值.
+
+
+函数和多维数组
+    使用函数处理二维数组
+    如
+        int matrix[3][4];   // 一个具有3个元素的数组, 其元素是一个具有4个int类型元素的数组
+
+    在函数形参, 得使用指向多维数组的指针
+        void sum_matrix(int (* ppt_array)[4], unsigned int row, unsigned int column)
+        {
+            // statement
+        }
+    或ppt_array仅仅是作为一个函数的形式参数时, 可以使用数组形式声明
+        void sum_matrix(int ppt_array[][4], unsigned int row, unsigned int column)
+        {
+            // statement
+        }
+    只能第一个方括号是空的. 空的方扩号表明ppt_array是一个指针.
+    第二个有数值的方括号表明这个指针指向包含4个int类型的数组, 编译器会为其分配4(int大小)*4=16个字节的内存
+    注意
+        编译器会把数组表示法转换成指针表示法, 而指针变量只会为其分配4个或8个字节用来存放所指向对象的地址
+        所以需要知道指针指向的对象的大小, 让编译器为其多分配一些内存.
+        如果第二个方扩号也是空的
+            形参中, 声明 int ppt_array[][] 错误的声明
+        编译器就不知道如何处理了 
+
+        也可以在第一个方括号中写上大小
+            形参中, 声明 int ppt_array[3][4]
+        但是编译器会忽略第一个方括号中的值
+
+    对应的函数原型
+        void sum_matrix(int (*ppt_array)[4], unsigned int row, unsigned int column);
+        void sum_matrix(int (*)[4], unsigned int, unsigned int);   // 省略变量名
+        void sum_matrix(int ppt_array[][4], unsigned int row, unsigned int column);
+        void sum_matrix(int [][4], unsigned int, unsigned int);   // 省略变量名
+
+    在函数体中, 通常使用数组表示法进行相关操作
+        for (int rw=0; rw<row; rw++){
+            for (int col; col<column; col++){
+                // 两层遍历二维数组
+                // 使用数组表示法处理二维数组内容值
+                matrix[rw][col];
+                // 使用指针表示法处理二维数组内容值
+                *(*(matrix+rw)+col);
+            }
+        }
+
+    对于更多维的数组, 只能省略最左边方括号中的值
+        int four_dimensional(int array_4d[][12][24][48], unsigned int row);
+    因为第一个方括号只用于表明这是一个指针, 而其他方括号则用于描述指针所指向数据对象的类型
+    对应的指针表示法
+        int four_dimensional(int (*array_4d)[12][24][48], unsigned int row);
+
+
+保护数组中的数据
+    C函数传参都是值传递, 即将实参的值复制一份传递给形参.
+    在传递数组的时候, 如果将整个数组按其值传递, 当数组较长的时候, 在复制传递值的时候会占用更多的系统资源.
+    如果使用指针, 则只需要将指向的地址值复制一份传递给指针形参. 通常大小就是指针对应的类型大小. 这样效率会更高.
+    但是如果使用指针值传递, 指针将会通过地址直接对原始的数据进行操作, 很可能会更改数据值. 若不想这样的事情发生, 可以使用const.
+
+    对形式参数使用const
+        形参中的const关键字, 防止向函数传入的数组或其他形式的指针变量, 会被函数中的操作修改所指向的原内容.
+
+        如
+            long sum_array(const int array[], unsigned int len);
+            long sum_array(const int * array, unsigned int len);
+        告诉函数在处理数组时将其视为常量, 不可更改.
+        
+        如果编写的函数需要修改数组, 在声明指针形参的时候, 不需要使用const, 如果编写的函数不需要修改数组, 则加上const修饰指针是最好的.
+
+    const的其他内容
+        const可以创建const数组, const指针, 指向const的指针.
+
+        const数组
+            const int samples[] = {11, 22, 33, 44, 55, 66};
+            不能修改const数组的值
+                samples[3] = 99;   // 编译错误
+        
+        const指针
+            double array[] = {11, 22, 33, 44, 55, 66};
+            const double * c_pt = array;
+
+            不能通过const指针修改原数据值
+                *(c_pt+3) = 99;   // 不允许
+                c_pt[3] = 99;   // 不允许
+            但是原数据依然可以通过非const指针的调用方式修改自己, 如直接使用数组变量名修改
+
+            const指针可以指向其他的地址
+                c_pt ++;
+                c_pt = samples;
+            
+        指向const的指针
+            指向const的指针通常用于函数的形参中, 表明该函数不会使用指针改变数据.
+            即对形式参数使用const关键字, 使不能通过形参指针更改所指向的原数据.
+
+    关于指针赋值和const还需要注意一些规则
+        首先, 把const数据的地址或非const数据的地址 用以初始化指向const的指针 或 为指向const变量的指针变量赋值 都是合法的
+            int width[4] = {2, 4, 8, 16};
+            const int hight[4] = {3, 9, 27, 36}; 
+            const int * c_pt = width;   // 将非const数据地址用于初始化指向const的指针
+            c_pt = width;   // 将非const数据地址用于赋值指向const的指针
+            c_pt = hight;   // 将const数据地址用于赋值指向const的指针
+            c_pt = &width[3];   // 将非const数据地址用于赋值指向const指针
+            c_pt = hight+3;   // 将const数据地址用于赋值指向const指针
+
+        然而, 只能把非const数据的地址赋给普通指针
+            int width[4] = {2, 4, 8, 16};
+            const int hight[4] = {3, 9, 27, 36};
+            int * pt;
+            pt = width;   // 将非const数据地址用于赋给普通指针
+            pt = hight;   // 无效, 将const数据地址用于赋给普通指针
+            pt = &width[3];   // 将非const数据地址用于赋给普通指针
+
+        这些规则非常合理, 可以避免通过指针而改变const数组中的数据
+
+        对于函数形参, 使用const不仅能保护数据, 还能让函数处理const数组
+
+    在声明指向const的指针的时候, 还可以将const放置在类型之后, *指针运算符之前
+        int const * nums;
+    指向const的指针相当于用const修饰指针变量声明的指针部分, 包括数据类型与*指针运算符, 用const修饰任意都可, 这样对指针指向内容的改变就不允许
+    
+    C标准规定, 使用非const标识符修改const数据, 导致的结果是未定义的.
+
+    const的其他用法
+        可以声明并初始化一个不能指向别处的指针, 关键是const的位置
+        需要位于*指针运算符之后, 变量名之前
+        相当于const修饰的是这个变量, 这样, 这个变量就具有常属性, 而不能改变
+            int array[4] = {2, 4, 8, 16};
+            int * const c_pt = array;   // c_pt指向数组的开始
+            c_pt = &array[2];   // 无效, 因为该指针不能指向别处
+            *c_pt = 3;   // 没有问题, 更改width[0]的值
+
+        可以用这种指针修改他所指向的值, 但是他只能指向初始化时设置的地址
+
+        在创建指针时还可以使用const两次, 即同时声明初始化一个指向const的指针和不可变指针变量
+            int array[4] = {2, 4, 8, 16};
+            const int * const c_pt = array;
+            c_pt = array + 2;   // 不允许, 不可修改指针变量的值
+            *c_pt = 3;   // 不允许, 不可修改指向const的指针所指向地址的值
