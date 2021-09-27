@@ -1,5 +1,5 @@
 int getchar()
-    从stdin中获取一个字符
+    从stdin中获取一个字符, 这里将字符定为int类型, 可以读取小于或等于0的特殊字符
 
     该函数不带任何参数, 从输入队列中返回一个字符
     如:
@@ -8,11 +8,11 @@ int getchar()
         scanf("%c", &ch);
 
 
-int putchar(int __c)
-    向stdout中输出一个字符c
+int putchar(int c)
+    向stdout中输出一个字符c, 这里将字符定为int类型, 可以输出小于或等于0的特殊字符
 
 注意:
-    这两个函数只处理函数
+    这两个函数只处理单个字符
     
 这两个函数定义在stdio.h中, 定义为共预处理器使用的宏
 

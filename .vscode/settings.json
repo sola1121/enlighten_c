@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "*.json": "jsonc",
-        "sstream": "c"
+        "sstream": "c",
+        "wchar.h": "c",
+        "uchar.h": "c"
     }
 }
