@@ -29,7 +29,7 @@ char * get_str(char * str, size_t len){
     size_t i = 0;
     char *find;
 
-    for(; i<len && (str[i]=getchar()) && str[i]!='\n'; i++);   // 遍历输入
+    for(; i<len && (str[i]=getchar())!='\n'; i++);   // 遍历输入
     
     find = strchr(str, '\n');   // 查找换行符
     if (find)
