@@ -1,0 +1,100 @@
+示例结构
+    struct data {
+        clock_t time_clock;
+        char describe[256];
+    };
+
+
+函数传参
+
+    可以将结构变量作为参数传递给函数形参, 也可以将结构指针作为采纳数传递给函数形参
+    对应函数形参的不同声明形式
+
+    传递结构变量
+        将结构变量作为参数传递给函数形参
+        传递的是原始数据的副本
+            void handle_func(struct data data);
+            void handle_func(const struct data data);
+        调用函数
+            struct data data;
+            handle_func(data);
+        函数中获取成员
+            data.time_clock;
+
+
+    传递结构指针变量
+        把结构的地址作为参数传递给函数形参
+        传递的是原始数据的地址, 是直接的使用原始数据
+            void handle_func(struct data * data);
+            void handle_func(const struct data * data);
+        调用函数
+            struct data data1;
+            struct data * data2;
+            handle_func(&data1);
+            handle_func(data2);
+        函数中获取成员
+        对于使用指针变量传递的结构体变量参数, 可以直接使用->运算符获取其成员值
+            data->time_clock;
+            data->describe;
+
+
+    传递结构成员
+        结构成员对应的是其在结构中声明的各个类型
+        对应的time_clock成员在传参的时候应该使用click_t类型的形参
+        对应的describe成员在传参的时候应该使用char [256]或者指针char [], char *
+        结构形参做成员的时候, 和一般情况的函数声明一样, 对应好形参类型即可
+        如
+            void handle_time_clock(clock_t);
+            void handle_describe(char []);
+
+            // 结构变量传递成员
+            handle_time_clock(value.time_clock);
+            handle_describe(value.describe);
+
+            // 结构指针变量传递成员
+            handle_time_clock(pt->time_clock);
+            handle_describe(pt->describe);
+        
+        如果结构变量中的成员是另一个结构变量或结构指针变量, 那就得遵循结构变量和结构指针变量的传递规则了
+
+
+函数将结构数据传出
+    第一种方式是使用结构指针变量, 即把结构变量的地址作为参数传递给函数
+    这样函数就可以直接使用原始的结构变量数据进行操作, 反映在主调函数中, 对应的结构变量的值也发生变化.
+    如  
+        void handle_data(struct data * pt){
+            pt->time_clock = clock();
+            strncpy(pt->describe, "利用结构指针变量修改原值.", 256);
+        }
+
+        int main(){
+            struct data data;
+            handle_data(&data);
+            ...
+        }
+
+    第二种方式是使用结构变量传参给函数对应结构类型的形参, 操作后, 用return返回操作后同类型的结构变量以替换主调函数中的对应变量.
+    这是利用同类型结构间可以相互赋值的赋值的
+    如
+        struct data handle_data(struct data value){ 
+            // value形参是函数内定义的新变量
+            value.time_clock = clock();
+            strncpy(value.describe, "利用结构变量返回替换原值.", 256);
+            return value;
+        }
+
+        int main(){
+            struct data data;
+            data = handle_data(data);   // 通过函数返回值并赋予原值, 完成替换
+            ...
+        }
+
+
+结构变量和结构指针变量的选择
+    
+    向函数使用结构变量形参, 传递的是原始数据的副本, 这保护了原始数据.
+    另外代码风格也更清楚
+    
+    向函数使用结构指针变量形参, 传递的是结构变量的地址, 对于不支持传递结构变量较早版本C编译器, 这是唯一的选择
+    而且传递指针的共同有点就是资源开支少, 只需要创建一块8字节的(指针变量通常大小)的内存, 且使用效率更高.
+    对于不想修改原始数据, 也可以使用const关键字

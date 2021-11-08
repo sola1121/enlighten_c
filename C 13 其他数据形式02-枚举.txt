@@ -1,0 +1,67 @@
+通过枚举可以创建一系列代表整型常量(枚举常量)的符号和定义相关联的枚举类型
+
+枚举类型 enumerated type
+    枚举类型声明符号名称来表示整型常量.
+    使用enum关键字, 可以创建一个新"类型"并指定它可具有的值.
+    enum工具提供一种定义符号常量的方法.
+    实际上, enum常量是int类型, 因此, 只要能使用int类型的地方就可以使用枚举类型.
+    枚举类型的目的是提高程序的可读性.
+    他的语法与结构的语法相同.
+
+    声明一个枚举
+        enum spectrum {
+            red, 
+            orange, 
+            yellow, 
+            green, 
+            blue, 
+            violet
+        };
+        创建了spectrum作为标记名, 允许把enum spectrum作为一个类型名使用.
+        花括号内的标识符枚举了spectrum可能的值. 这些符号常量被称为枚举符enumerator.
+
+        enum spectrum color;
+        声明color为对应的枚举类型变量.
+        对于enum spectrum类型的枚举变量, color可对应的值为枚举符red, orange, yellow, ...等
+
+    使用示例
+        int num;
+        eunm spectrum color = 100;
+        if (color == yellow)
+            ...;
+        for (color = red; color <= violet; color++)
+            ...;
+        
+    枚举符(如red, blue)是int类型, 但是枚举变量(如color)可以是任意整数类型, 前提是该整数类型可以存储枚举常量.
+    例如enum spectrum的枚举符范围是0~5, 所以编译器可以用unsigned char来表示color变量.
+
+    对于C++
+        C枚举的一些特性并不使用于C++.
+        例如C枚举变量可以使用++运算符, 但是C++标准不允许.
+    
+
+enum常量
+    enum常量就是枚举类型对应的枚举符, 如red, blue.
+    从技术上看, 他们都是int类型常量.
+
+    red为一个有名称的常量, 代表整数0. 类似地, 其他标识符都是有名称的常量, 分别代表1~5.
+    只要是能使用整型常量的地方就可以使用枚举常量.
+    例如
+        在声明数组时候, 可以使用枚举常量表示数组的大小
+        double array[violet];   // 声明长度为5的double数组
+
+        在switch语句中, 可以把常量作为标签.
+
+
+默认值
+    枚举列表中的常量都被赋予0, 1, 2, 3, ...等
+    为从0开始, 以以1挨个递增
+
+
+赋值
+    在枚举声明中, 可以为枚举常量指定整数值
+        enum levels {low=100, medium=500, high=2000};
+    
+    如果只给一个枚举常量赋值, 没有对后面的枚举常量赋值, 那么后面的常量会被赋予后续的值
+        enum feline {cat, lynx=10, puma, tiger};
+    cat==0, lynx==10, puma==11, tiger==12

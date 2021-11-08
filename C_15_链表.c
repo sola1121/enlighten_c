@@ -48,7 +48,6 @@ List * insert_rear_node(List * head, int data){
     curr->next = new_node;
 
     return head;
-        
 }
 
 

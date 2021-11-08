@@ -1,0 +1,129 @@
+联合 union
+    联合是一种数据类型, 他能在同一个内存空间中存储不同的数据类型(不是同时存储).
+
+    联合使用与结构相同的语法. 然而联合的成员共享一个共同的存储空间.
+    联合同一时间内只能存储一个单独的数据项, 不像结构那样同时存储多种数据类型.
+
+    应用场景
+        设计一种表示存储既无规律, 事先也不知道顺序的混合类型.
+        如使用联合类型的数组, 其中的联合大小相等, 每个联合可以存储各种数据类型
+    
+
+联合声明
+    与结构的声明相同, 使用union关键字声明一个联合, 在其后的是一个可选标记
+        union 标记名 {
+            类型1 成员1;
+            类型2 成员2;
+            ...
+        };
+    如
+        union data {
+            int number;
+            double price;
+            char letter;
+        };
+    根据以上形式声明的联合只能存储一个int类型或一个double类型或一个char类型的数据
+
+
+声明联合变量
+        union data d1;   // union data类型的联合变量
+        union data d2[10];   // 内含10个联合变量的数组
+        union data *pt;   // 指向union data类型联合变量的指针
+    对于联合变量, 编译器将会分配联合成员中占用最大字节的成员的类型对应的字节数
+    如union data 中double类型占用最大字节数, 对于声明的联合变量d1, 将会分配sizeof(double)个字节, 一般为8个字节
+    对于元素为联合变量的数组, 如d2, 每个元素是8个字节, 共分配8*10个字节
+    pt则是声明了一个联合指针变量, 该指针存储union data类型的变量地址
+
+    在声明联合同时定义一个联合变量
+        union data {
+            int number;
+            double price;
+            char letter;
+        } value;
+
+
+赋值联合变量
+    需要注意的是, 联合只能存储一个值.
+
+    初始化联合变量第一个成员
+        union data value = 32;   // 为第一个成员, 即int型的number赋值
+
+    把一个联合初始化为另一个同类型的联合
+        union data value1;
+        union data value2 = 48;
+        value1 = value2;   // 使用另一同类型联合赋值
+
+    根据C99的指定初始化器
+        union data value = {.double=6.5};   // 指定初始化器
+
+    先进行声明, 然后指定成员赋值
+        union data value;
+        value.letter = 'a';
+
+
+使用联合中的成员
+
+    使用.点运算符访问联合变量中的成员. 因为在联合变量中, 一次只存储一个值.
+    要留意存有值的成员, 此时没有值的成员显示为应类型的零值, 其中并没有任何内容.
+        union data value = 32;   // 成员number值
+        value.letter = 'a';   // 清除number值, 赋值letter
+
+    使用->运算符访问联合指针变量中的成员
+        union data *pt;
+        pt->letter;   // 成员letter, 为char类型变量
+
+
+联合的实际使用
+    一种用法是, 在结构中存储与其成员有从属关系的信息.
+    例如, 假设用一个结构表示一辆汽车. 
+         如果汽车属于驾驶者, 就要用一个结构成员来描述这个所有者.
+         如果汽车被租赁, 那么需要一个成员来描述租赁公司.
+    
+        struct owner {
+            char socecurity[12];
+            ...
+        };
+        struct leasecompany {
+            char name[56];
+            char headquarters[56];
+            ...
+        };
+        union data {
+            struct owner owncar;
+            struct leasecompany leasecar;
+        };
+
+        struct car_data {
+            char make[16];
+            int status;   // 私有为0, 租赁为1
+            union data ownerinfo;
+            ...
+        };
+    假设value是car_data类型的结构变量
+    如果value.status为0, 私有, 程序将使用value.ownerinfo.owncar.socecurity
+    如果value.status为1, 租赁, 程序则使用value.ownerinfo.leasecompany.name
+
+
+匿名联合
+    与匿名结构工作原理相同, 匿名联合是一个结构或联合的无名联合成员
+    如上面的应用例子, 可以写为
+        struct owner {
+            char socesecurity[12];
+            ...
+        };
+        struct leasecompany {
+            char name[56];
+            char headquarters[56];
+            ...
+        };
+
+        struct car_data {
+            char make[15];
+            int status;   // 私有为0, 租赁为1
+            union {
+                struct owner owncar;
+                struct leasecompany leasecar;
+            };
+            ...
+        }
+

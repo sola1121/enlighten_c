@@ -1,0 +1,101 @@
+利用typedef可以为某一类型自定义名称
+typedef工具提供了一种为基本或派生类型创建新标识符的方法.
+typedef中使用的名称遵循变量的命名规则.
+通常typedef定义中用大写字母表示被定义的名称, 以提醒用户这个类型实际上是一个符号缩写.
+typedef并没有创建任何新类型, 他只是为某个已存在的类型增加一个方便使用的标签.
+
+
+typedef的作用域
+    typedef的作用域取决于其所在的位置. 
+    如果定义在函数中, 就具有局部作用域, 受限于定义所在的函数了.
+    如果定义在函数外面, 就具有文件作用域.
+
+
+typedef的使用场景
+    为经常出现的类型创建一个方便的, 容易识别的类型名
+    为复杂的类型起一个相对简单的类型名, 如结构, 联合, 函数类型
+    如
+        // Data声明为一个结构指针类型
+        typedef struct data * Data;
+
+        // 用typedef来命名一个结构类型时, 可以省略该结构的标签
+        typedef struct {time_t time_clock; char describe[32];} * Data;
+
+        注意类型名为指针类型的, 当声明对应的指针变量的时候, 应该使用动态内存分配函数为其分配内存
+            Data pt = (Data) malloc(sizeof(Data));
+
+        // fun声明为一个函数类型, 该函数返回一个指针, 该指针指向内含5个char类型元素的数组
+        typedef char ( * fun() ) [5];
+
+
+typedef与#define指令对比
+    与#define指令不同, typedef创建的符号只受限于类型, 不能用于值
+    #define指令由预处理器处理, typedef由编译器解释
+    在其受限范围内, typedef比#define指令更灵活
+
+    typedef与#define指令一些功能的重合
+        使用预处理器用Byte替换unsigned char
+        # define Byte unsigned char
+
+        使用编译器处理Byte为unsigned char
+        typedef unsigned char Byte;
+    
+    typedef与#define指令在指针变量声明上的不同
+        针对指针, 因为#define指令只是单纯的替换对应名称为指定的内容
+        # define Byte unsigned char * 
+        声明Byte对应的变量, 预处理器只是将Byte替换为指定内容
+            Byte pt1, pt2;
+        预处理后为
+            unsigned char * pt1, pt2;
+        pt1是指针变量, pt2为普通变量
+
+        但是使用typedef声明的类型名
+            typedef unsigned char * Byte;
+        声明Byte对应的变量, 编译器将会把声明的变量都设置为指定类型的变量
+            Byte pt1, pt2;
+        pt1, pt2都是对应的指针变量, 当然, 如果要正常使用的话, 应该使用动态内存分配函数为其分配内存
+
+
+--------------------------------------------------------------
+
+其他复杂声明
+
+    声明时候可以使用的符号
+        *   表示一个指针
+        ()  表示一个函数
+        []  表示一个数组
+
+    例子
+        int matrix[8][8];    // 声明一个内含int数组的数组
+        int ** ppt;          // 声明一个指向指针的指针, 被指向的指针指向int
+        int * pt_array[10];  // 声明一个内含10个元素的数组, 每个元素都是一个指向int的指针
+        int (* pt)[10];      // 声明一个指向数组的指针, 该数组内含10个int类型的值
+        int * pt_matrix[3][4]; // 声明一个3×4的二维数组, 每个元素都是指向int的指针
+        int (* pt)[3][4];    // 声明一个指向3×4二维数组的指针, 该数组中内含int类型值
+        int (* pt_array[3])[4]; // 声明一个内含3个指针元素的数组, 其中每个指针都指向一个内含4个int类型元素的数组
+
+    理解*, (), []的优先级
+        数组名后面的[]和函数名后面的()具有相同的优先级. 他们比*的优先级要高.
+            因此 int * pt_array[10]; 是一个指针数组, 不是指向数组的指针
+        []和()优先级相同, 都是从左往右结合
+            因此 int (* pt)[10]; 从左往右先运算()中的, 即*先与pt结合, 使pt成为指针, 然后再运算[], 让该指针指向一个内含10个int元素的数组
+        []和()都是从左往右结合.
+            因此 int goods[12][50]; 先是一个有12个元素的数组, 然后每个元素又是具有50个int元素的数组. goods是一个二维数组
+            对于 int * pt_matrix[3][4]; pt_matrix先是一个具有3个元素的数组, 然后每个元素又是具有4个int指针的数组.
+
+            int (* pt_array)[3][4]; ()与[]优先级相同, 从左往右, 先计算()中的, 使pt_array与*结合成为指针, 该指针指向一个具有3个元素的数组, 然后每个元素又是具有4个int元素的数组
+    
+    例子
+        char * fump (int);   // 返回字符指针的函数
+        char (* frump) (int);   // 指向函数的指针, 该函数的返回类型为char
+        char (* flump[3]) (int);   // 内含3个指针的数组, 每个指针都指向返回类型为char的函数
+
+    使用typedef建立一系列相关类型
+        typedef int arr[5];
+        typedef arr * p_arr;
+        typedef p_arr arrp[10];
+
+        arr togs;   // togs是一个内含5个int类型值的数组
+        p_arr p2;   // p2是一个指向数组的指针, 该数组内含5个int类型的值
+        arrp ap;   // ap是一个内含10个指针的数组, 每个指针都指向一个内含5个int类型值的数组
+

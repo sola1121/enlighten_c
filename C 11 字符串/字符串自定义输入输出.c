@@ -24,7 +24,7 @@ int main(){
 }
 
 
-// 获取字符串
+// 获取字符串, 不会保存输入中的换行符
 char * get_str(char * str, size_t len){
     size_t i = 0;
     char *find;
@@ -35,14 +35,14 @@ char * get_str(char * str, size_t len){
     if (find)
         *find = '\0';   // 如果有换行符, 把该处字符替换为空字符
 
-    while (getchar()!='\n')
+    while (getchar()!='\n')   // 清理输入行
         continue;
 
     return str;
 }
 
 
-// 输出字符串
+// 输出字符串, 输出时会添加一个换行符
 int put_str(const char * str){
     int count = 0;
     while (*str){   // 空字符的数值是0, 在用于表达式判断的时候就是false, 循环将会停止
