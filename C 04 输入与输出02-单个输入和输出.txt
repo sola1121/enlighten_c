@@ -4,6 +4,7 @@ int getchar()
     该函数不带任何参数, 从输入队列中返回一个字符
     如:
         ch = getchar();
+        ch = getc(stdin);
         同
         scanf("%c", &ch);
 
