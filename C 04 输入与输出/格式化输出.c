@@ -12,7 +12,13 @@ int main(){
 
     printf("十六进制输出: %X, %#x\n", num, num);
 
-    printf("浮点数最小字段宽度.精度: %+f, %5.4f, %-10.5f\n", pi, square, square);
+
+    // 浮点数输出数字位数, 先要满足最小字段宽度, 实际超出以实际为准 , 然后小数点后的再满足精度
+    printf("浮点数最小字段宽度.精度: %5.4f, %5.2f\n", pi, square);
+    printf("浮点数最小字段宽度与精度都小于实际: %4.3f, %4.1f\n", pi, square);
+    printf("浮点数最小字段宽度小于实际, 但是精度大于实际: %4.5f, %1.3f\n", pi, square);
+    printf("浮点数最小字段宽度大于实际: %12.6f, %12.6f\n", pi, square);
+
 
     printf("浮点数使用e记数法: %e, %E, %12e\n", pi, square, square);
 

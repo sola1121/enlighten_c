@@ -1,0 +1,33 @@
+对齐特性 C11
+
+    对齐特性比用位填充字节更自然, 他们还代表了C在处理硬件相关问题上的能力.
+    这种上下文中, 对齐指的是如何安排对象在内存中的位置.
+    例如, 为了效率最大化, 系统可能要把一个double类型的值存储在4个字节内存地址上, 但却允许把char存储在任意地址.
+    若把数据从一个硬件位置转移到另一个位置, 或者调用指令同时操作多个数据项. 这就是有用的.
+
+    _Alignof运算符给出一个类型的对齐要求, 在关键字_Alignof后面的圆括号中写上类型名即可
+        size_t data_align =  _Alignof(float);
+    如果data_align值为4, 意思是float类型对象的对齐要求是4.
+    也就是说, 4是存储该类型值相邻地址的字节数.
+    一般而言, 对其值应该是2的非负整数次幂.
+    较大的对齐值被称为stricter或stronger, 较小的的对齐值被称为weaker.
+    
+    _Alignas强制执行数据存储区上的对其要求.
+    可以使用_Alignas说明符指定一个变量或类型的对齐值. 但是不应该要求该值小于基本对齐值.
+    例如, 如果float类型的对齐要求是4, 不要请求对齐值是1或2.
+    该说明符作为声明的一部分, 说明符后面的圆括号内包含对齐值或类型.
+        _Alignas(double) char ch1;
+        _Alignas (8) char ch2;
+        unsigned char _Alignas(long double) ch_array[sizeof(long double)];
+    _Alignas(type)说明符在类型说明前面或后面都是一样的.
+
+
+程序中包含stdalign.h头文件, 就可以把alignas和alignof分别作为_Alignas和_Alignof的别名. 这样可以和C++关键字匹配.
+
+
+C11在stdlib.h头文件声明中还添加了一个新的内存分配函数, 用于对齐动态分配内存.
+
+    void * aligned_alloc(size_t alignment, size_t size);
+
+    第一个参数代表指定的对齐, 第二个参数是所需的字节数, 其职应该是第一个参数的倍数.
+    与其他内存分配函数一样, 要使用free()函数释放之前分配的内存.

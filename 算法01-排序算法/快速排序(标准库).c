@@ -3,7 +3,7 @@
 
 
 /*
-标准库stdlib.h 中提供的快速查找算法
+标准库stdlib.h 中提供的快速排序算法
 void qsort (void* base, size_t num, size_t size,
             int (*compar)(const void*,const void*));
 

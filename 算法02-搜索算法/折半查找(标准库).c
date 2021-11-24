@@ -42,7 +42,7 @@ int main ()
     int * pItem;
     int key = 40;
 
-    qsort (values, 6, sizeof (int), compareints);   // 使用快速排序
+    qsort (values, 6, sizeof (int), compareints);   // 折半查找只能对有序数列进行查找, 所以这里使用快速排序
     pItem = (int*) bsearch(&key, values, 6, sizeof (int), compareints);
 
     if (pItem!=NULL)
