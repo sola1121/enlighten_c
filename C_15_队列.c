@@ -77,8 +77,13 @@ Queue * create_queue(int datas[], int arr_len){
 
 
 // 清空队列
-bool clear_queue(Queue * head){
-
+void clear_queue(Queue * head){
+    Queue * curr = head;
+    while (head!=NULL){
+        head = curr->rear;
+        free(curr);
+        curr = head;
+    }
 }
 
 
