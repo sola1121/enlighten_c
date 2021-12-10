@@ -25,12 +25,14 @@
 int main(){
     int row, column;
 
+    // 打印第一行
     for (int i=0; i<=9; i++){
         if (i==0) printf("*    ");
         else printf("%-5d", i);
     }
     putchar('\n');
 
+    // 首先打印但前行号, 在遍历列直到与行号相同, 同时输出乘积
     for (row=1; row<=9; row++){
         printf("%-5d", row);
         for (column=1; column<=row; column++){ 
