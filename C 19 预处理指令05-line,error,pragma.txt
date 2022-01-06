@@ -1,0 +1,53 @@
+1. # line指令 
+    # line指令重置__LINE__和__FILE__宏报告的行号和文件名
+    如
+        # line 32   // 把当前行号重置为32
+        # line 24 "main.c"   // 把行号重置为24, 把文件名重置为main.c
+
+    使用# line指令的指令所行, 在预编译期间进行计算后删除, 不算在源码当中
+    如, 在源代码中6行处使用#line指令
+        6行: # line 1 "main.c"
+        7行: 
+        8行: printf("%d\n", __LINE__);
+        所输出为7
+
+
+2. # error指令
+    # error指令让预处理器发出一条错误消息, 该消息包含指令中的文本
+    如
+        # if __STDC_VERSION__ < 201112L
+        # error 请使用C11以上标准
+        # endif
+
+
+3. # pragma指令
+    在现在编译器中, 可以通过命令行参数或IDE菜单修改编译器的一些设置.
+    # pragma把编译器指令放入源代码中.
+    如
+        在开发C99时, 标准被称为C9X, 可以使用下面的编译指示pragma让编译器支持C9X
+        # pragma c9x on
+    一般而言, 编译器都有自己的编译指示集.
+    例如, 编译指示可能用于控制分配给自动变量的内容, 设置错误检查的严格程度, 启用非标准语言特性等.
+
+    1) _Pragma预处理运算符
+        该运算符把字符串转换成普通的编译指示.
+        如
+            _Pragma("nonstandardtreatmenttypeB on")
+            相当于
+            # pragma nonstandardtreatmenttypeB on
+
+        由于该运算符不使用#符号, 可以把他作为宏展开的一部分
+        如
+            # define PRAGMA(command) _Pragma(#command)
+            # define LIMRG(commmand) PRAGMA(STDC CX_LIMITED_RANGE command)
+            // 调用
+            LIMRG (on)
+        错误使用
+            # define LIMRG(command) _Pragma(STDC CX_LIMITED_RANGE #command)
+        问题在于这行代码依赖字符串的串联功能, 而预处理过程完成之后才会串联字符串.
+
+        _Pragma运算符完成解字符串destringizing的工作, 即把字符串中的转义序列转换成他所代表的字符
+        因此
+            _Pragma("use_bool \"true \"false)
+        变成了
+            # pragma use_bool "true "false

@@ -3,6 +3,7 @@
         "*.json": "jsonc",
         "sstream": "c",
         "wchar.h": "c",
-        "uchar.h": "c"
+        "uchar.h": "c",
+        "stdarg.h": "c"
     }
 }
