@@ -181,7 +181,7 @@
         对应的虚数类型
         float _Imaginary, double _Imaginary, long double _Imaginary
 
-        标准库 complex.h , 变可以使用complex代替_Complex, imaginary代替 _Imaginary
+        标准库 complex.h , 可以使用complex代替_Complex, imaginary代替 _Imaginary
         为了对已有代码的兼容性, 以免有命名冲突
 
 
@@ -224,7 +224,15 @@ C语言可以使用八进制和十六进制数值为整数类型赋值
         使用 0x 或 0X 前缀表示十六进制值, 数字使用范围 0 ~ f
         如: 
             int hex_num = 0xff;   // 255
-    
+
+
+空类型
+    void - 空类型
+    void类型, 表示什么也没有
+    void*, 空类型指针可以用任何类型的指针赋值
+
+
+--------------------------------------------------------------
 
 可移植的类型
     C语言提供了许多有用的整数类型, 但是某些类型名在不同系统中功能不一样.

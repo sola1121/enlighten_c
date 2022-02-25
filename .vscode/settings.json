@@ -4,6 +4,9 @@
         "sstream": "c",
         "wchar.h": "c",
         "uchar.h": "c",
-        "stdarg.h": "c"
-    }
+        "stdarg.h": "c",
+        "tgmath.h": "c",
+        "assert.h": "c"
+    },
+    "commentTranslate.hover.enabled": true
 }

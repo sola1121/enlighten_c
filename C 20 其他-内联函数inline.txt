@@ -1,0 +1,100 @@
+函数调用都有一定的开销,  因为函数的调用过程包括建立调用, 传递参数, 跳转到函数代码并返回.
+使用宏使代码内联, 可以避免这样的开销.
+C99还提供内联函数inline function
+C99与C11标准规定, 把函数变成内联函数意味着尽可能块地调用该函数, 具体效果由实现定义.
+因此, 把函数变成内联函数, 编译器可能会用内联代码替换函数调用, 并(或)执行一些其他的优化, 但是也可能不起作用.
+
+作用范围
+    具有内部链接的函数可以成为内联函数
+    内联函数的定义与调用该函数的代码必须在同意文件内
+
+关键字inline
+    使用inline函数说明符和static存储类别说明符定义一个内联函数
+
+    使用static表明函数为静态函数, 即只能用于其定义所在的文件
+    使用inline表明函数为内联函数, 即在编译时可能会做内联优化
+
+    内联函数应该定义在首次使用他的文件中, 所以内联函数也相当于函数原型.
+
+    内联函数应该比较短小.
+    把较长的函数变成内联并未节省多少时间, 因为执行函数体的时间比调用函数的时间长得多.
+
+    编译器优化内联函数必须知道函数定义的内容.
+    这意味着内联函数定义与函数调用必须在同一个文件中. 鉴于此, 一般情况下内联函数都具有内部链接.
+    因此, 如果程序有多个文件都要使用某个内联函数, 那么这些文件中都必须包含该内联函数的定义.
+    最简单的做法是, 把内联函数定义放入头文件, 并在使用该内联函数的文件中包含该头文件.
+
+    使用例子
+        # include <stdio.h>
+        inline static void remove_line() {   // 内联函数原型, 同时也定义
+            while (getchar()!='\n')
+                continue;
+        }
+
+        int main(){
+            ...
+            remove_line();   // 函数调用
+            ...
+        }
+        若编译器使用了内联优化, 那么main函数中调用remove_line函数将会被替换为
+        int main(){
+            ...
+            while (getchar()!='\n')
+                continue;
+            ...
+        }
+        即用函数体中的代码替换remove_line函数的调用, 效果相当于在函数调用的位置输入函数体中的代码
+
+        将内联函数放入头文件
+        # ifndef REMOVE_LINE_H_
+        # define REMOVE_LINE_H_
+        inline static void remove_line(){
+            while (getchar()!='\n')
+                continue;
+        }
+        # endif
+        虽然一般不再头文件中放置可执行代码, 但是内联函数是一个例外.
+        因为内联函数具有内部链接诶, 所以在多个文件中定义同一个内联函数不会产生问题.
+
+    注意
+        由于并未给内联函数预留单独的代码块, 所以无法获得内联函数的地址.
+        虽然在实际操作中可以获得内联函数地址, 不过这样做后, 编译器会生成一个非内联函数.
+        内联函数无法在调试器中显示.
+
+    C++与C在使用内联函数上的差别
+        C允许混合使用内联函数定义和外部函数定义(具有外部链接的函数定义)
+
+        如
+            // file1.c
+            inline static double square(double);
+            double square(double x) {return x*x;}
+            int main(){
+                double result = square(1.5);
+                ...
+            }
+
+            // file2.c
+            double square(double x) {return (int) x*x;}
+            void spam(double v){
+                double result = square(v);
+                ...
+            }
+
+            // file3.c
+            inline double square(double x) {return (int) (x*x+0.5);}
+            void masp(double w){
+                double result = square(w);
+            }
+            上面三个文件中都定义了square()函数
+            file1.c文件中是inline static定义
+            file2.c文件中是普通函数定义, 默认是外部函数, 即具有外部链接, 在其他文件中可访问
+            file3.c文件中是inline定义, 省略了static
+
+            三个文件中的函数都调用了square函数
+            file1.c文件中的main()使用square()的局部static定义.
+            该定义同时也是inline定义, 所以编译器有可能优化代码, 也许会内联该函数.
+            file2.c文件中, spam()函数使用该文件中square()函数定义, 该定义具有外部链接, 其他文件也可见.
+            file3.c文件中, 编译器即可以使用该文件中square()函数的内联定义, 也可以使用file2.c文件中的外部链接定义.
+            如果像file3.c那样, 省略file1.c文件inline定义中的static, 那么该inline定义被视为可替换的外部定义.
+
+        注意gcc在C99之前就使用一些不同的规则实现了内联函数, 所以gcc可以根据当前编译器的标记来解释inline.

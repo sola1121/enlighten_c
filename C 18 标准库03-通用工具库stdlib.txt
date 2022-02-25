@@ -1,0 +1,256 @@
+1. 通用工具库stdlib.h
+    通用工具库包含随机数生成器, 查找和排序函数, 转换函数和内存管理函数.
+    如, rand(), srand(), malloc(), free().
+
+    1) exit()和atexit()
+
+        int exit(int status)
+            使程序正常终止, 并向系统返回执行状态
+
+        int atexit(void (*func)(void))
+            当程序正常终止时, 以注册相反顺序调用func
+
+        main()返回系统时将自动隐式调用exit()函数.
+        atexit()通过注册要在程序正常终止时调用的函数, 在终止前将会以注册顺序相反的顺序调用这些注册了的函数. 
+        ANSI保证, 在这个列表中至少可以放32个函数.
+        将函数名作为函数指针作为参数传递给atexit(), 因此在调用atexit()函数时, 只需将函数名传递给他即可.
+        最后调用exit()函数时, exit()会执行这些函数, 执行顺序与列表中的函数顺序相反, 也就是按栈存储注册顺序, 遵循先进后出.
+        因为main()结束时候自动调用exit()函数, 因此即使没有显式的使用exit(), 注册了的函数在程序终止时, 也会被调用.
+
+        atexit()注册的函数, 应该不带任何参数且返回类型为void.
+        通常, 这些函数会执行一些清理任务, 例如更新监视程序的文件或重置环境变量.
+
+        exit()执行完atexit()指定的函数后, 会完成一些清理工作.
+        包含: 刷新所有输出流, 关闭所有打开的流, 关闭由标准I/O函数tmpfile()创建的临时文件.
+        然后exit()把控制权返回主机环境, 如果可能的话, 向主机环境报告终止状态.
+        通常, UNIX程序使用0表示成功终止, 用非零值表示终止失败.
+        UNIX返回的代码并不适用于所有系统, 所以ANSI C为了可移植性的要求, 定义了一个名为EXIT_FAILURE宏表示终止失败, EXIT_SUCCESS宏表示终止成功.
+        exit()函数也接受0表示成功终止.
+        ANSI C中, 非递归的main()中使用exit()函数等价于使用关键字return.
+        在main()以外的函数中使用exit()会终止整个程序.
+
+        (1) 使用例子
+            # include "stdlib.h"
+            ...
+            int main(){
+                ...
+                // 向列表中注册退出时需要执行的函数 void func(void)
+                atexit(func1);
+                atexit(func2);
+                ...
+                exit(0);   // 在main()中等价于return 0;
+            }
+
+
+    2) abort()
+        void abort(void)
+            程序异常退出
+
+        中止程序执行, 直接从调用的地方跳出, 不返回任何值.
+
+        (1) 使用例子
+            # include "stdio.h"
+            # include "stdlib.h"
+            ...
+            int main(){
+                FILE * fp;
+                if ( (fp=fopen("file", "r"))==NULL ){
+                    perror("文件打开失败.");
+                    abort();
+                }
+            ...  
+            }
+
+
+    3) qsort()
+        快速排序Quicksort, 又称分区交换排序partition-exchange sort, 是一种排序算法.
+        对于较大型的数组而言, "快速排序"方法是最有效的排序算法之一.
+        在平均状况下, 排序n个项目要O(n*log(n))次比较. 在最坏状况下则需要O(n²)次比较, 但这种状况并不常见.
+        快速排序算法由C.A.R.Hoare于1962年开发. 他把数组不断分成更小的数组, 直到变成单元素数组.
+        首先, 把数组分成两部分, 一部分的值都小于另一部分的值. 这个过程一直持续到数组完全排序号为止.
+        具体步骤为
+            挑选基准值: 从数列中挑出一个元素, 称为"基准"(pivot), 
+            分割: 重新排序数列, 所有比基准值小的元素摆放在基准前面, 所有比基准值大的元素摆在基准后面(与基准值相等的数可以到任何一边). 在这个分割结束之后, 对基准值的排序就已经完成
+            递归排序子序列: 递归地将小于基准值元素的子序列和大于基准值元素的子序列排序.
+            递归到最底部的判断条件是数列的大小是零或一，此时该数列显然已经有序.
+
+            选取基准值有数种具体方法，此选取方法对排序的时间性能有决定性影响.
+
+        快速排序在C实现中的名称是qsort(), 其排序对象是数组.
+        原型:
+            void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *))
+        第一个参是指针, 指向待排序数组的首元素. ANSI C允许把指向任何数据类型的指针强制转换成指向void的指针, 因此qsort()的第一个参数可以引用任何类型的数组.
+        第二个参数是待排序项的个数. 函数原型把该值转换为size_t类型, 是sizeof运算符返回的整数类型.
+        第三个参数是数组中每个元素的大小. 因为第一个参数转换为void指针, 所以qsort不知道数组中每个元素的大小, 这就需要指出每个元素的大小.
+        第四个参数是一个指向函数的指针, 这个函数作为比较函数用于确定排序的顺序.
+        比较函数int (*compar)(const void *, const void *), 分别指向待比较两项的指针.
+        比较函数返回int类型的值, 且接受两个指向const void的指针作为参数
+        如果第一项大于第二项, 比较函数返回正数
+        如果第一项等于第二项, 比较函数返回0
+        如果第一项小于第二项, 比较函数返回负数
+        qsort()根据给定的其他信息计算出两个指针的值, 然后把他们传递给比较函数.
+
+        (1) 使用例子
+            # include "stdlib.h"
+            ...
+            // 比较函数 int (*compar)(const void*, const void*);
+            // 将会按照从小到大顺序排列
+            int compare(const void * p1, const void * p2){
+                // 将void*转换为正确的类型, 使用指向int类型的指针访问值
+                const int * a = (const int *) p1;
+                const int * b = (const int *) p2;
+
+                if (*a==*b)
+                    return 0;
+                else 
+                    return *a>*b?1:-1;
+            }
+            ...
+            int main(){
+                ...
+                // 使用快速排序
+                // 第一个参数, 待排序的数组首元素地址
+                // 第二个参数, 待排序数组元素的个数
+                // 第三个参数, 待排序数组每个元素的大小
+                // 第四个参数, 按照什么计算方式排序排序, 该计算函数的地址
+                qsort(array, LEN, sizeof(int), compare);
+                ...
+                return 0;
+            }
+
+            为了让函数具有通用性, qsort()和比较函数使用了指向void的指针.
+            因此必须把数组中每个元素的大小明确告诉qsort()
+            并且在比较函数的定义中, 必须把该函数的指针参数转换为对具体应用而言类型正确的指针.
+
+        (2) 使用例子
+            # include "stdlib.h"
+            # include "string.h"
+            ...
+            struct names {
+                char first[32];
+                char last[32];
+            };
+            struct names staff[100];   // 声明结构体数组
+            ...
+            // 比较函数 int (*compar)(const void*, const void*);
+            int compare(const void * p1, const void * p2){
+                // 将void*转换为正确的类型, 使用结构体指针
+                const struct names * napt1 = (const struct names *) p1;
+                const struct names * napt2 = (const struct names *) p2;
+
+                int res;   // 用于记录字符串比较结果
+                res = strcmp(napt1->last, napt2->last);   // 比较姓
+                if (res != 0)   // 姓氏不相同, 直接返回strcmp比较结果, 因为strcmp字符串比较后的返回值符合比较函数要求
+                    return res;
+                else   // 姓氏相同, 在比较名子, 直接返回strcmp比较结果, 因为strcmp()字符串比较后的返回值符合比较函数要求
+                    return strcmp(napt1->first, napt2->first);
+            }
+            ...
+            int main(){
+                ...
+                // 使用快速排序
+                // 第一个参数, 待排序的数组首元素地址
+                // 第二个参数, 待排序数组元素的个数
+                // 第三个参数, 待排序数组每个元素的大小
+                // 第四个参数, 按照什么计算方式排序排序, 该计算函数的地址
+                qsort(staff, 100, sizeof(struct names), compare);
+                ...
+                return 0;
+            }
+
+    
+    4) bsearch()
+        二分查找算法binary search algorithm, 也称折半搜索算法half-interval search algorithm, 对数搜索算法logarithmic search algorithm, 是一种在有序数组中查找某一特定元素的搜索算法.
+        搜索过程从数组的中间元素开始, 如果中间元素正好是要查找的元素, 则搜索过程结束; 
+        如果某一特定元素大于或者小于中间元素, 则在数组大于或小于中间元素的那一半中查找, 而且跟开始一样从中间元素开始比较.
+        如果在某一步骤数组为空, 则代表找不到. 
+        这种搜索算法每一次比较都使搜索范围缩小一半.
+
+        二分查找算法在最坏情况下是对数时间复杂度的, 需要进行O(log(n))次比较操作, n为在此处是数组的元素数量.
+        二分查找算法使用常数空间, 对于任何大小的输入数据, 算法使用的空间都是一样的. 
+        除非输入数据数量很少, 否则二分查找算法比线性搜索更快, 但数组必须事先被排序. 
+        尽管一些特定的, 为了快速搜索而设计的数据结构更有效(比如哈希表), 二分查找算法应用面更广.
+
+        C 语言中的二分查找函数为bsearch(), 其查找对象是数组. 
+        原型:
+            void *bsearch(const void *key, const void *base, size_t nitems, size_t size, int (*compar)(const void *, const void *))
+        第一个参数key, 指向要查找的元素的指针, 类型转换为 void*
+        第二个参数base, 指向进行查找的数组的第一个对象的指针, 类型转换为 void*
+        第三个参数nitems, 用以指明base所指向的数组中元素的个数
+        第四个参数size, 数组中每个元素的大小, 以字节为单位
+        第五个参数compar, 用来比较两个元素的函数
+        比较函数int (*compar)(const void *, const void *), 分别指向待比较两项的指针.
+        比较函数返回int类型的值, 且接受两个指向const void的指针作为参数
+        如果查找成功，该函数返回一个指向数组中匹配元素的指针, 否则返回空指针.
+
+        (1) 使用例子
+            #include "stdio.h"
+            #include "stdlib.h"
+
+            int cmpfunc(const void * a, const void * b){
+                return ( *(int*)a - *(int*)b );
+            }
+
+            int values[] = { 5, 20, 29, 32, 63 };
+
+            int main (){
+                int *ret = NULL;   // 查找结果
+                int key = 32;   // 查找的元素值
+
+                // 使用bsearch()函数查找数组中值为32的元素
+                ret = (int*) bsearch (&key, values, 5, sizeof (int), cmpfunc);
+
+                if( ret != NULL )
+                    printf("找到元素%p, 值为%d.\n", ret, *ret);
+                else
+                    printf("未找到值为%d的元素.\n", key);
+                
+                return 0;
+            }
+            
+
+    5) system()
+
+        int system(const char *command)
+            command是包含被请求变量名称的C字符串.
+            把command指定的命令名称或程序名称传给要被命令处理器执行的主机环境, 并在命令完成后返回.
+
+        如果发生错误，则返回值为 -1，否则返回命令的状态。
+
+        (1) 使用例子
+            # include "stdlib.h"
+            # include "string.h"
+            ...
+            int main(){
+                char command[128];
+                strcpy(command, "ls -l");
+                system(command);
+            ...
+            }
+
+    
+    6) rand(), srand()
+        int rand(void)
+            返回一个范围在0~RAND_MAX之间的伪随机数, 是整数值
+
+        RAND_MAX 是一个常量, 定义在stdlib.h中, 它的默认值在不同的实现中会有所不同, 但是值至少是2¹⁵-1, 即32767.
+
+        函数 void srand(unsigned int seed) 播种由函数 rand 使用的随机数发生器。
+
+
+        void srand(unsigned int seed)
+            设置随机种子, 以便rand()生成伪随机数
+            seed这是一个整型值，用于伪随机数生成算法播种
+            该函数不返回任何值
+
+        设置随机种子每次应该不同, 以rand()生成不同的伪随机数, 常和time.h中的time()连用
+
+        (1) 使用例子
+            # include "stdlib.h"
+            # include "time.h"
+            ...
+            int main(){
+                srand((unsigned) time(NULL));
+                ...
+                int num = rand()%10;    // 生成10以内的伪随机数
+            }

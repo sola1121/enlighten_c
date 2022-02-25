@@ -1,0 +1,91 @@
+1. 数学库 math.h
+    math.h头文件提供该库中函数的原型.
+    注意, 函数中涉及的角度都以弧度为单位1弧度=180/π=57.296度.
+
+    double acos(double x)   : 返回arccos(x)的值(0~π弧度)
+    double asin(double x)   : 返回arcsin(x)的值(-π/2~π/2弧度)
+    double atan(double x)   : 返回arctan(x)的值(-π/2~π/2弧度)
+    double atan2(double y, double x)   : 返回arctan(y/x)的值(-π~π弧度)
+    double cos(double x)   : 返回cos(x)的值, 单位为弧度
+    double sin(double x)   : 返回sin(x)的值, 单位为弧度
+    double tan(double x)   : 返回tan(x)的值, 单位为弧度
+    double exp(double n)   : 返回eⁿ的值
+    double log(double x)   : 返回ln(x)的值
+    double log10(double x) : 返回log₁₀(x)的值
+    double pow(double x, double y)   : 返回x的y次幂
+    double sqrt(double x)  : 返回x的开平方值
+    double cbrt(double x)  : 返回x的立方值
+    double ceil(double x)  : 返回不小于x的最小整数值
+    double fabs(double x)  : 返回x的绝对值
+    double floor(double x) : 返回不大于x的最大整数值
+    ...
+
+    如果在编译时, 出现
+        Undefined: _sqrt
+        或
+        'sqrt': unresolved external
+        或其他类似的消息
+    表明编译器链接器没有找到数学库.
+    UNIX系统会要求使用-lm标记(flag)指示链接器搜索数学库
+        cc source.c -lm
+        或, 使用gcc
+        gcc source.c -lm
+    注意, -lm标记在命令行的末尾. 因为链接器在编译器编译C文件后才开始处理.
+
+    1) 处理类型变体
+        当将float, long double 作为参数传递时, 函数可以正常工作, 因为这些类型将会被转换为double.
+        但是, 这可能会造成long double 类型的精度损失, 于是, 为了处理float, long double类型, C标准专门为其提供了标准函数.
+        在原函数名后加上f或l后缀, 因此, 有了sqrtf()为sqrt()的float版本, sqrtl()为sqrt()的long double版本.
+
+        利用C11新增的泛型选择表达式定义一个泛型宏, 根据参数类型选择最合适的数学函数版本.
+            # define RAD_TO_DEG (180/(4*atan(1)))   // 弧度转换为角度
+
+            # define SQRT(value) _Generic((value), \
+                long double: sqrtl, \
+                default: sqrt, \
+                float: sqrtf) (value)
+            
+            # define SIN(value) _Generic((value), \
+                long double: sinl((value)/RAD_TO_DEG), \
+                default: sin((value)/RAD_TO_DEG), \
+                float: sinf((value)/RAD_TO_DEG) \
+            )
+
+
+2. 泛型数学库tgmath.h
+    tgmath.h头文件中定义了泛类型宏, 其效果和上面的SIN()宏定义相似.
+    如果在math.h中为一个函数定义了三种类型(float, double, long double)的版本, 那么tgmath.h头文件就创建一个泛型类型宏, 与原来的double版本同名.
+    例如, sqrt()宏展开为sqrtf(), sqrtl(), sqrt().
+
+    如果编译器支持复数运算, 就会支持complex.h头文件, 其中声明了与复数运算相关的函数.
+    例如,csqrtf(), csqrt(), csqrtl(), 这些函数分别返回float complex, double complex, long double complex类型的负数开平方.
+    如果提供这些支持, 那么tgmath中的sqrt()宏也能展开为相应的复数开平方根函数.
+
+    如果包含了tgmath.h, 要调用sqrt()函数而不是sqrt()宏, 可以用圆括号()把被调用的函数名括起来.
+        # include <tgmath.h>
+        ...
+            float x = 44.0f;
+            double y;
+            y = sqrt(x);   // 调用宏, 通过泛型选择, 调用的将会是sqrtf(x)
+            y = (sqrt)(x);   // 调用函数sqrt(), 通过圆括号指定调用函数
+    类函数宏名称必须用圆括号括起来. 
+    圆括号只会影响操作顺序, 不会影响括起来的表达式, 当使用圆括号将函数名括起来的时候, 是先运算函数指针, 在将函数与传参调用结合, 所以这样做得到的仍然是函数调用的结果.
+
+
+3. stdlib.h中的数学函数
+    1) abs(), labs()
+        int abs(int x)
+        long int labs(long int x)
+            该函数返回x的绝对值
+
+    2) div(), ldiv()
+        div_t div(int numer, int denom)
+        div_t div(long int numer, long int denom)
+            把numer(分子)除以denom(分母)
+            该函数返回定义在stdlib.h中的结构中的值. 该结构有两个成员，定义为类型div_t
+
+        typedef struct div_t {
+            int quot;
+            int rem;
+        } div_t;
+        其中quot代表商数, rem代表余数

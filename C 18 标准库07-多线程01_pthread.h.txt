@@ -1,0 +1,347 @@
+进程是一个程序的一个实例, 拥有自己独立的各种段(数据段, 代码段等等), 每次创建一个进程需要从操作系统分配这些资源给他, 消耗一定的时间, 在linux下C语言创建一个进程使用fork()函数
+线程是一个轻量级的进程, 除了自己少数的资源, 不用用其他资源, 且一个进程可以创建多个线程, 这些线程共享进程的资源, 创建线程的时间要比创建进程少很多, (几十分之一), 从函数角度是使用clone()创建
+使用线程处理文件I/O或者socket处理都是非常有优势的, 将一个大任务分解成若干个小任务, 每个线程处理一个任务, 线程之间切换不需要花很多时间, 而且线程之间数据交换很方便, 共享存储区
+
+进程
+    当一个程序开始运行时, 它就是一个进程, 进程包括运行中的程序和程序所使用到的内存和系统资源. 
+    而一个进程又是由多个线程所组成的.
+
+线程
+    线程是程序中的一个执行流, 每个线程都有自己的专有寄存器(栈指针, 程序计数器等), 但代码区是共享的, 即不同的线程可以执行同样的函数.
+
+多线程
+    多线程是指程序中包含多个执行流, 即在一个程序中可以同时运行多个不同的线程来执行不同的任务, 也就是说允许单个程序创建多个并行执行的线程来完成各自的任务.
+
+C语言的开始设计, 并未设计多线程的机制, 由于随着软硬件的发展及需求的发展. 后来C语言才开发了线程库以支持多线程的操作, 应用.
+
+对于Linux系统的C语言多线程
+    一方面必须链接Linux C语言基于POSIX线程扩展的多线程库pthread, 才可以正确编译(例如: gcc test.c -o test -lpthread);
+    另一方面要包含有关线程头文件 # include <pthread.h>.
+
+线程程序作为一种多任务, 并发的工作方式, 存在如下优势
+    (1) 提高应用程序响应
+        这对图形界面的程序尤其有意义, 当一个操作耗时很长时, 整个系统都会等待这个操作. 
+        此时程序不会响应键盘, 鼠标, 菜单的操作, 而使用多线程技术, 将耗时长的操作time consuming置于一个新的线程, 可以避免这种尴尬的情况.
+    (2) 使多CPU系统更加有效
+        操作系统会保证当线程数不大于CPU数目时，不同的线程运行于不同的CPU上.
+    (3) 改善程序结构
+        一个既长又复杂的进程可以考虑分为多个线程, 成为几个独立或半独立的运行部分, 这样的程序会利于理解和修改.
+
+
+1. 多线程 pthread.h
+    1) 线程变量类型
+        线程变量的类型为 pthread_t, 实际是一个无符号长整型 unsigned long int
+
+    2) 线程创建
+        int pthread_create(pthread_t * restrict tidp, const pthread_attr_t * restrict attr, void *(*start_rtn)(void), void * restrict arg)
+        第一个参数tidp, pthread*类型, 要创建的线程的线程id指针, 目的是用于返回创建线程的id
+        第二个参数attr, 创建线程时的线程属性, 比如线程优先级, 初始栈大小等, 通常情况使用的都是指针
+        第三个参数start_rtn, 接受一个空类型参数, 返回空类型指针的函数指针, 是线程创建后执行的函数
+            void * (*start_rtn)(void)返回值是void类型的指针函数
+        第四个参数arg, start_rtn的形参, 若线程执行的函数包含由若干个参数, 需要将这些参数封装成结构体, 并传递给它指针
+        返回值
+            若是成功建立线程返回0, 否则返回非0值
+    
+    3) 线程挂起
+        int pthread_join(pthread_t thread, void ** value_ptr)
+        第一个参数thread, 等待退出线程的线程id号
+        第二个参数value_ptr, 退出线程的返回值
+        返回值
+            若成功执行则返回0, 失败则返回非0值
+
+        该函数的作用是使得指定线程id的线程挂起, 等待另一个线程返回才继续执行, 主要用于线程间同步操作.
+        也就是说当程序运行到这个地方, 程序会先停止. 然后等线程id为thread的这个线程返回, 然后程序才会断续执行.
+        不使用的话, 线程结束后并不会释放其内存空间, 这会导致该线程变成了"僵尸线程".
+
+        线程的终止和此功能的完成是同步的
+
+    4) 主线程与子线程分离
+        int pthread_detach(pthread_t thread, void ** retval);
+        分离指定的线程, 子线程结束后, 资源自动回收.
+        不阻塞程序, 即不等待线程thread执行完毕, 接着向下执行程序.
+        pthread_join()函数的替代函数. 如果对应id的线程尚未终止, pthread_detach()不会终止该线程.
+
+    5) 对线程属性的操作
+        (1) 线程属性类型 
+            pthread_attr_t 类型, 是一个结构体
+            定义如下
+                typedef struct
+                {
+                    int __detachstate;
+                    int __schedpolicy;
+                    struct sched_param __schedparam;
+                    int __inheritsched;
+                    int __scope;
+                    size_t __guardsize;
+                    int __stackaddr_set;
+                    void* __stackaddr;
+                    size_t __stacksize;
+                } pthread_attr_t;
+
+            1. __detachstate
+                默认属性的线程在执行完目标函数后, 占用的资源并不会立即是否哪个, 要么执行完pthread_join()函数后释放, 要么整个进程执行结束后释放.
+                在某些场景中, 并不需要接收线程执行结束后的返回值, 如果想让线程执行完后立即释放占用的私有资源, 可以通过修改__datachstate属性来实现.
+
+                __detachstate 属性值用于指定线程终止执行的时机, 该属性的值有两个, 分别是:
+                    PTHREAD_CREATE_JOINABLE (默认值), 线程执行完函数后不会自行释放资源
+                    PTHREAD_CREATE_DETACHED, 线程执行完函数后, 会自行终止并释放占用的资源
+
+                <pthread.h> 头文件中用于访问和修改__datachstate属性的函数
+                    int pthread_attr_getdetachstate(const pthread_attr_t * attr, int * detachstate)
+                    用于获取 __detachstate 属性的值, detachstate 指针用于接收 __detachstate 属性的值
+                    执行成功时返回0, 失败时返回非0值
+
+                    int pthread_attr_setdetachstate(pthread_attr_t * sttr, int detachstate)
+                    用于修改 __detachstate 属性的值，detachstate 整形变量即为新的 __detachstate 属性值
+                    执行成功时返回0, 失败时返回非0值
+
+                <pthread.h> 头文件还提供有 pthread_detach() 函数, 可以直接将目标线程的 __detachstate 属性改为 PTHREAD_CREATE_DETACHED
+                    int pthread_detach(pthread_t thread)
+                    执行成功时返回0, 失败则返回非0值
+
+            2. __schedpolicy
+                __schedpolicy 属性用于指定系统调度该线程所用的算法, 它的值有以下三个:
+                    SCHED_OTHER (默认值), 分时调度算法
+                    SCHED_FIFO, 先到先得(实时调度)算法
+                    SCHED_RR, 轮转法
+                其中, SCHED_OTHER 调度算法不支持为线程设置优先级, 而另外两种调度算法支持
+
+                <pthread.h> 头文件用于访问和修改__schedpolicy属性的函数
+                    int pthread_attr_getschedpolicy(const pthread_attr_t *, int * policy)
+                    用于获取当前 __schedpolicy 属性的值
+                    执行成功时返回0, 失败则返回非0值
+
+                    int pthread_attr_setschedpolicy(pthread_attr_*, int policy)
+                    用于修改 __schedpolicy 属性的值
+                    执行成功时返回0, 失败则返回非0值
+
+            3. __schedparam
+                __scheparam 用于设置线程的优先级(默认值为 0), 该属性仅当线程的 __schedpolicy 属性为 SCHED_FIFO 或者 SCHED_RR 时才能发挥作用
+
+                <pthread.h> 头文件中用于访问和修改 __schedparam 属性的函数
+                    int pthread_attr_getschedparam(const pthread_attr_t *attr, struct sched_param *param)
+                    执行成功时返回0, 失败则返回非0值
+
+                    int pthread_attr_setschedparam(pthread_attr_t *attr, const struct sched_param *param)
+                    执行成功时返回0, 失败则返回非0值
+                    
+                    其中, param 参数用于接收或者修改 __scheparam 属性的优先级.
+                    param参数是 sched_param 结构体类型的变量, 定义在 <sched.h> 头文件中, 内部仅有一个 sched_priority 整形变量, 用于表示线程的优先级.
+                    
+                    当需要修改线程的优先级时我们只需创建一个 sched_param 类型的变量并为其内部的 sched_priority 成员赋值
+                    然后将其传递给 pthrerd_attr_setschedparam() 函数.
+
+                不同的操作系统, 线程优先级的值的范围不同, 可以通过调用如下两个系统函数获得当前系统支持的最大和最小优先级的值
+                    int sched_get_priority_max(int policy);   //获得最大优先级的值
+                    int sched_get_priority_min(int policy);   //获得最小优先级的值
+
+                    其中, policy 的值可以为 SCHED_FIFO、SCHED_RR 或者 SCHED_OTHER, 当 policy 的值为 SCHED_OTHER 时, 最大和最小优先级的值都为 0
+
+            4. __inheritsched
+                新建线程的调度属性(__schedpolicy 和 __schedparam 属性)默认遵循父线程的属性(谁创建它, 谁就是它的父线程)
+                如果想自定义线程的调度属性, 就需要借助 __inheritsched 属性.
+
+                也就是说, 新线程的调度属性要么遵循父线程, 要么遵循自定义属性变量结构中规定的属性
+                默认情况下 __inheritsched 规定新线程的调度属性遵循父线程, 也可以修改 __inheritsched 的值, 使新线程的调度属性遵循自定义的属性变量规定的值.
+
+                <pthread.h> 头文件中用于获取和修改 __inheritsched 属性的函数
+                    int pthread_attr_getinheritsched(const pthread_attr_t *attr,int *inheritsched);
+                    获取 __inheritsched 属性的值
+                    执行成功时返回0, 失败则返回非0值
+
+                    int pthread_attr_setinheritsched(pthread_attr_t *attr,int inheritsched);
+                    修改 __inheritsched 属性的值
+                    执行成功时返回0, 失败则返回非0值
+
+                    其中在 pthread_attr_setinheritsched() 函数中, inheritsched 参数的可选值有两个, 分别是:
+                    PTHREAD_INHERIT_SCHED (默认值), 新线程的调度属性继承自父线程
+                    PTHREAD_EXPLICIT_SCHED, 新线程的调度属性继承自自定义线程属性变量中规定的值
+
+            5. __scope
+                线程执行过程中, 可以只和同进程内的其它线程争夺 CPU 资源, 也可以和系统中所有的其它线程争夺 CPU 资源
+                __scope 属性用于指定目标线程和哪些线程抢夺 CPU 资源
+
+                <pthread.h> 头文件中用于获取和修改 __scope 属性的函数
+                int pthread_attr_getscope(const pthread_attr_t * attr, int * scope);
+                获取 __scope 属性的值
+                执行成功时返回0, 失败则返回非0值
+
+                int pthread_attr_setscope(pthread_attr_t * attr, int * scope);
+                修改 __scope 属性的值
+                执行成功时返回0, 失败则返回非0值
+
+                当调用 pthread_attr_setscope() 函数时, scope 参数的可选值有两个, 分别是:
+                PTHREAD_SCOPE_PROCESS, 同一进程内争夺 CPU 资源
+                PTHREAD_SCOPE_SYSTEM, 系统所有线程之间争夺 CPU 资源
+                Linux系统仅支持 PTHREAD_SCOPE_SYSTEM, 即所有线程之间争夺 CPU 资源
+
+            6. __stacksize
+                每个线程都有属于自己的内存空间, 通常称为栈(有时也称堆栈, 栈空间, 栈内存等)
+                某些场景中, 线程执行可能需要较大的栈内存, 此时就需要我们自定义线程拥有的栈的大小
+                __stacksize 属性用于指定线程所拥有的栈内存的大小。
+
+                <pthread.h> 头文件中用于获取和修改栈空间的大小的函数
+                int pthread_attr_getstacksize(const pthread_attr_t * attr, size_t * stacksize)
+                获取当前栈内存的大小
+                执行成功时返回0, 失败则返回非0值
+
+                int pthread_attr_setsstacksize(pthread_attr_t * attr, size_t * stacksize)
+                修改栈内存的大小
+                执行成功时返回0, 失败则返回非0值
+
+            7. __guardsize
+                每个线程中, 栈内存的后面都紧挨着一块空闲的内存空间, 我们通常称这块内存为警戒缓冲区.
+                警戒缓冲区的功能是: 一旦我们使用的栈空间超出了额定值, 警戒缓冲区可以确保线程不会因"栈溢出"立刻执行崩溃.
+                __guardsize 属性专门用来设置警戒缓冲区的大小
+
+                <pthread.h> 头文件用于获取和修改 __guardsize 属性的函数
+                int pthread_attr_getguardsize(const pthread_attr_t *restrict attr, size_t *restrict guardsize);
+                获取当前警戒缓冲区的大小为参数guardsize
+                执行成功时返回0, 失败则返回非0值
+
+                int pthread_attr_setguardsize(pthread_attr_t *attr, size_t *guardsize);
+                设置警戒缓冲区的大小为参数 guardsize 指定的字节数
+                执行成功时返回0, 失败则返回非0值
+
+        (2) 初始化一个线程属性变量 
+            pthread_attr_init(pthread_attr_t * attr)
+            初始化成功返回0, 失败则返回非0值
+            通过调用pthread_attr_init()函数, 就使所操作的pthread_attr_t类型变量具有了系统默认的线程属性, 在其基础上可以根据需要对其修改.
+
+    6) 线程退出
+        void pthread_exit(void * rval_ptr)
+        pthread_exit()函数是在线程完成工作后无需继续存在时被调用.
+
+        如果main()主函数是在他所创建的线程之前结束, 并通过pthread_exit()函数退出, 那么其他线程将继续执行. 否则他们将在main()主函数结束时自动被终止.
+
+    7) 获取当前线程id
+        pthread_t pthread_self(void)
+
+    8) 互斥锁
+        在访问临界资源时, 通过互斥, 限制同一时刻最多只能有一个线程可以获取临界资源
+        其逻辑是
+            如果访问临界资源发现没有其他线程上锁, 就上锁, 获取临界资源
+            期间如果其他线程执行到互斥锁发现已锁住, 则线程挂起等待解锁, 当前线程访问完临界资源后, 解锁并唤醒其他被该互斥锁挂起的线程, 等待再次被调度执行
+
+        线程的挂起与唤醒由队列完成, 每个Mutex有一个等待队列
+        一个线程要在Mutex上挂起等待, 首先在把自己加入等待队列中, 然后置线程状态为睡眠, 然后调用调度器函数切换到别的线程
+        一个线程要唤醒等待队列中的其它线程, 只需从等待队列中取出一项, 把它的状态从睡眠改为就绪, 加入就绪队列, 那么下次调度器函数执行时就有可能切换到被唤醒的线程
+
+        互斥量类型
+            pthread_mutex_t
+        
+        初始化互斥量
+        int pthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr)
+
+        销毁互斥量
+        int pthread_mutex_destroy(pthread_mutex_t *mutex)
+
+        加锁
+        int pthread_mutex_lock(pthread_mutex_t *mutex);
+        尝试加锁
+        int pthread_mutex_trylock(pthread_mutex_t *mutex);
+
+        解锁
+        int pthread_mutex_unlock(pthread_mutex_t *mutex);
+
+        (1) 使用方式
+            pthread_mutex_t mutex;   // 锁对象
+            pthread_mutex_init(&mutex, NULL);   // 在主线程中初始化锁为解锁状态
+            pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;   // 编译时初始化锁位解锁状态
+            pthread_mutex_lock(&mutex);   // 访问临界区加锁操作
+            pthread_mutex_unlock(&mutex);   // 访问临界区解锁操作
+
+    9) 条件锁
+        条件变量, 即一个线程需要等某个条件成立(而这个条件是由其他线程决定的)才能继续往下执行
+        现在这个条件不成立, 线程就阻塞等待, 等到其他线程在执行过程中使这个条件成立了, 就唤醒线程继续执行
+
+        条件变量类型
+            pthread_cond_t
+
+        初始化条件变量
+        int pthread_cond_init(pthread_cond_t *restrict cond, const pthread_condattr_t *restrict attr);
+        
+        销毁条件变量
+        int pthread_cond_destroy(pthread_cond_t *cond);
+
+        等待
+        int pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex);
+        超时等待
+        int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime)
+
+        信号触发
+        int pthread_cond_signal(pthread_cond_t *cond);
+        在等待指定条件变量的任意数量的线程中, 唤醒其中一个线程
+
+        广播
+        int pthread_cond_broadcast(pthread_cond_t *cond);
+        唤醒所有等待指定条件变量的线程
+
+        执行int pthread_cond_wait()函数前需要先获取互斥锁, 判断条件是否满足
+        如果满足执行条件, 则继续向下执行后释放锁
+        如果判断不满足执行条件, 则释放锁, 线程阻塞在这里, 一直等到其他线程通知执行条件满足, 唤醒线程, 再次加锁, 向下执行后释放锁
+        简而言之就是: 释放锁 -> 阻塞等待 -> 唤醒后加锁返回
+
+    10) 信号
+        使用信号计数的方式控制线程, 在头文件<semaphore.h>中
+
+        信号量适用于控制一个仅支持有限个用户的共享资源, 用于保持在0至指定最大值之间的一个计数值
+        当线程完成一次对该semaphore对象的等待时, 该计数值减一
+        当线程完成一次对semaphore对象的释放时, 计数值加一
+        当计数值为0时, 线程挂起等待, 直到计数值超过0
+
+        信号量的执行逻辑
+            当需要获取共享资源时, 先检查信号量
+            如果值大于0, 则值减1, 访问共享资源, 访问结束后, 值加1, 如果发现有被该信号量挂起的线程, 则唤醒其中一个线程
+            如果检查到信号量为0, 则挂起等待
+
+        信号量类型
+            sem_t
+
+        初始化
+        int sem_init(sem_t *sem, int pshared, unsigned int value);
+
+        等待
+        int sem_wait(sem_t *sem);
+        尝试等待
+        int sem_trywait(sem_t *sem);
+
+        发送
+        int sem_post(sem_t * sem);
+
+        销毁
+        int sem_destroy(sem_t * sem);
+
+    11) 使用示例
+        # include "stdio.h"
+        # include "pthread.h"
+
+        // 用来向线程执行函数中传递的参数结构
+        typedef struct attr {
+            ...
+        } * Attr;
+
+        void * fun(void * args){
+            ...
+        }
+
+        int main(){
+            int res = 1;
+            pthread_t th_1, th_2;
+            // 用来向线程执行函数中传递的参数
+            struct attr attr_1 = {...}, attr_2 = {...};
+            
+            // 创建线程
+            res = pthread_create(&th_1, NULL, fun, &args_1);
+            isSuccess(res);
+            res = pthread_create(&th_2, NULL, fun, &args_2);
+            isSuccess(res);
+
+            // 执行等待
+            pthread_join(th_1, NULL);
+            pthread_join(th_2, NULL);
+            ...
+        }
+
+        改进
+            对于多个线程, 可以将要执行的函数放在一个数组中, 然后使用循环, 将这些函数放入线程中执行

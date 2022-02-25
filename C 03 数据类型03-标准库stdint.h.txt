@@ -1,0 +1,82 @@
+整型类型 stdint.h
+    stdint.h头文件中用一组typedef工具创建整数类型名, 指定整数的属性.
+    stdint.h头文件包含在inttypes.h中, inttypes.h头文件中提供了输入/输出函数调用的宏.
+
+    精确宽度类型
+        int8_t   : 8位, 有符号
+        int16_t  : 16位, 有符号
+        int32_t  : 32位, 有符号
+        int64_t  : 64位, 有符号
+        uint8_t  : 8位, 无符号
+        uint16_t : 16位, 无符号
+        uint32_t : 32位, 无符号
+        uint64_t : 64位, 无符号
+
+    最小宽度类型, 最小宽度类型保证其类型的大小至少是某数量位
+        int_least8_t   : 至少8位, 有符号
+        int_least16_t  : 至少16位, 有符号
+        int_least32_t  : 至少32位, 有符号
+        int_least64_t  : 至少64位, 有符号
+        uint_least8_t  : 至少8位, 无符号
+        uint_least16_t : 至少16位, 无符号
+        uint_least32_t : 至少32位, 无符号
+        uint_least64_t : 至少64位, 无符号
+
+    最快最小宽度类型, 在特定系统中, 使用某些整数类型比其他整数类型更快
+        int_fast8_t   : 至少8位, 有符号
+        int_fast16_t  : 至少16位, 有符号
+        int_fast32_t  : 至少32位, 有符号
+        int_fast64_t  : 至少64位, 有符号
+        uint_fast8_t  : 至少8位, 无符号
+        uint_fast16_t : 至少16位, 无符号
+        uint_fast32_t : 至少32位, 无符号
+        uint_fast64_t : 至少64位, 无符号
+    
+    最大宽度类型, 这种类型的变量可以存储系统中的任意整数值, 还要考虑符号
+        intmax_t   : 最大宽度的有符号类型
+        uintmax_t  : 最大宽度的无符号类型
+
+    可存储指针值的整数类型, 可以精确地存储指针值.
+    也就是说, 如果把一个void *类型的值赋给这种类型的变量, 然后再把该类型的值赋回给指针, 不会丢失任何信息.
+        intptr_t   : 可存储指针值的有符号类型
+        uintptr_t  : 可存储指针值的无符号类型
+    
+    已定义的常量
+    stdint.h头文件定义了一些常量, 用于表示该头文件中所定义类型的限定值.
+    常量都更具类型命名, 即用_MIN或_MAX代替类型名中的_t, 然后把所有字母大写即得到表示该类型最小值或最大值的常量名.
+    所定义的整型常量, 其中的N表示位数, 这些常量的值应等于或大于(除非指明了一定要等于)所列的值
+        INTN_MIN      : 等于-(2ⁿ⁻¹-1) 
+        INTN_MAX      : 等于2ⁿ⁻¹-1
+        UINTN_MAX     : 等于2ⁿ⁻¹-1
+        INT_LEASTN_MIN : -(2ⁿ⁻¹-1)
+        INT_LEASTN_MAX : 2ⁿ⁻¹-1
+        UINT_LEASTN_MAX : 2ⁿ-1
+        INT_FASTN_MIN : -(2ⁿ⁻¹-1)
+        INT_FASTN_MAX : 2ⁿ⁻¹-1
+        UINT_FAST_MAX : 2ⁿ-1
+        INTPTR_MIN    : -(2¹⁵-1)
+        INTPTR_MAX    : 2¹⁵-1
+        UINTPTR_MAX   : 2¹⁶-1
+        INTMAX_MIN    : -(2¹⁵-1)
+        INTMAX_MAX    : 2⁶³-1
+        UINTMAX_MAX   : 2⁶⁴-1
+
+    stdint.h头文件中还定义了别处定义的类型使用的常量
+        PTRDIFF_MIN   : ptrdiff_t类型的最小值
+        PTRDIFF_MAX   : ptrdiff_t类型的最大值
+        STG_ATOMIC_MIN : stg_atomic_t类型的最小值
+        STG_ATOMIC_MAX : stg_atomic_t类型的最大值
+        WCHAR_MIN     : wchar_t类型的最小值
+        WCHAR_MAX     : wchar_t类型的最大值
+        WINT_MIN      : wint_t类型的最小值
+        WINT_MAX      : wint_t类型的最大值
+        SIZE_MAX      : size_t类型的最大值
+    
+    扩展的整型常量
+    stdint.h头文件定义了一些宏用于指定各种扩展整数类型.
+    从本质上看, 这种宏是底层类型(即在特定实现中表示扩展类型的基本类型)的强制转换.
+    把类型后面的_t替换成_C, 然后大写所有的字母就构成了一个宏名.
+    如
+        UINT_LEAST64_C(1000)
+        1000就是uint_least64_t类型的常量
+        

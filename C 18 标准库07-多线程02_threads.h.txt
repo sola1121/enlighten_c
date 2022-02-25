@@ -1,0 +1,293 @@
+C11开始支持
+    C11标准以前, C开发人员必须依赖操作系统或相应链接库来实现并行
+    C11标准发布以后, 使得C程序可便捷地实现并行. C11支持多线程执行multithreaded execution
+
+多线程指的是在一个程序进程中处理控制流的多路并行通道, 它在所有操作系统上为运行该程序提供了相同程度的并发性.
+为此, C11标准定义了一个相应的内存模型memory model, 并且支持原子操作atomic operation
+
+在C11标准下, 对于多线程和原子操作的支持是可选的. 
+如果支持C11标准的编译器实现版本定义了宏 __STDC_NO_THREADS__ 和 __STDC_NO_ATOMICS__, 则表示该实现版本不支持多线程与原子操作
+
+针对C语言的POSIX线程扩展(简称pthread), 该扩展是根据UNIX可移植操作系统接口标准(POSIX)IEEE 1003.1c实现多线程编程的链接库
+C11标准线程编程的接口在很多方面与 POSIX 标准类似.
+
+
+1. 多线程 threads.h
+    注意
+        如果宏 __STDC_NO_THREADS__和 __STDC_NO_ATOMICS__被编译器定义, <threads.h>头文件中的所有功能都用不了
+        编译时同pthread使用一样, 需要链接pthread, 如: gcc test.h -o a.out -lpthread
+
+    C11标准的多线程头文件 threads.h
+
+    1) 线程变量类型
+        线程变量类型为 thrd_t, 实际是一个无符号长整型 unsigned long int
+    
+    2) 线程创建
+        int thrd_create( thrd_t *thr, thrd_start_t func, void *arg );
+        第一个参数thr, thrd*类型, 要创建的线程的线程id指针, 目的是用于返回创建线程的id
+        第二个参数func, 接受一个空类型指针参数, 返回整型的函数指针, 是线程创建后执行的函数
+            thrd_start_t被定义为 int(*)(void *), 注意, 这一POSIX标准中的不同
+            实质为一个函数指针, 指向一个void指针作为其参数并返回一个int值的函数, 因此, 线程执行的函数返回一个int值
+        第三个参数arg, func的形参, 若线程执行的函数包含由若干个参数, 需要将这些参数封装成结构体, 并传递给它指针
+        返回值
+            如果一个线程启动成功, thrd_create()函数将线程写入一个对象进行标识, 并通过参数thr指向该对象, 然后返回宏值thrd_success, 为0
+            如果一个线程启动失败, 返回thrd_nomem, thrd_timeout, thrd_busy, thrd_error, 都是非0值
+        
+        在大多数情况下, 后续的其他操作均依赖于该线程的执行结果, 并且只有当该线程完成后, 才能执行其他操作
+    
+    3) 线程挂起
+        int thrd_join( thrd_t thr, int *res );
+        第一个参数thr, 等待执行的完成的线程id号
+        第二个参数res, 线程返回码将会被放到该参数所指向的地址
+        返回值
+            如果执行成功, 返回thrd_success, 为0值, 如果失败, 将会其他错误, 均为非0值
+
+        线程挂起, 直到线程完成执行
+        如果res不是空指针, 线程返回的值将会被放入res指向的地址
+        线程的终止和此功能的完成是同步的
+        
+        如果线程先前已经被另一个线程detach或join, 该函数行为未定义
+
+    4) 主线程与子线程分离
+        int thrd_detach( thrd_t thr );
+        分离指定的线程, 子线程结束后, 资源自动回收
+        不阻塞程序, 即不等待线程thr执行完毕, 接着向下执行程序
+        
+        如果线程先前已经被另一个线程detach或join, 该函数行为未定义
+    
+    5) 线程控制
+        (1) 当前所在线程
+            thrd_t thrd_current(void);
+            返回当强调用的线程id号
+        
+        (2) 线程比较
+            int thrd_equal( thrd_t lhs, thrd_t rhs );
+            比较lhs和rhs两个线程是否是同一个线程, 当相同时返回0
+        
+        (3) 线程等待一段时间
+            int thrd_sleep( const struct timespec* duration, struct timespec* remaining );
+            使得正在调用的线程等待一段时间, 等待时间由 duration 指定.
+            仅当该函数收到唤醒的信号时, 它才提前返回. 在这种情况下, 该函数将剩余倒数时间保留在 remaining 引用的对象中, 假设 remaining 不是一个空指针.
+            指针 duration 和 remaining 不得指向同一个对象.
+            返回值
+                如果倒计时完成, 则 thrd_sleep()返回 0
+                如果线程函数由一个信号唤醒, 即实现提前返回, 则 thrd_sleep()返回 -1
+                其他负数返回值表示错误
+            
+            头文件time.h中定义的时间, 结构参数 timespec 有两个成员, 分别用于存储秒和纳秒
+                time_t tv_sec;   // 秒≥0
+                long   tv_nsec;   // 0 ≤纳秒≤999 999 999
+
+        (4) 中断线程
+            void thrd_yield(void);
+            该函数建议操作系统调度器中断当前调用的线程, 并将 CPU 时间分给另一个线程.
+
+        (5) 退出线程
+            _Noreturn void thrd_exit( int res );
+            以 result 作为结果值结束正在调用线程. 
+            在线程中执行的所有函数都可以调用 thrd_exit().
+            该函数调用相当于在线程函数中执行语句 return result;.
+            最后一个线程退出后, 整个程序将正常退出, 换句话说，它类似于调用具有参数 EXIT_SUCCESS 的函数 exit().
+
+    6) 线程间互斥和原子操作
+        如果多个线程访问相同的数据, 并且它们中至少有一个修改了数据, 那么对共享数据的所有访问必须同步以防止数据竞争.
+        但是, 一个正在读取共享数据的线程可能中断另一个正在修改相同共享数据的线程, 因此, 可能导致线程读取到不一致的数据.
+        甚至, 由于程序在每次执行时系统可能调度不同的线程, 导致每次运行程序时错误消息只能间歇地反映当时情况, 很难在测试中复现错误.
+        为了保障同步, C标准库提供了互斥操作mutex operation和原子操作atomic operation
+
+        (1) 互斥
+            互相排斥mutex exclusion技术, 简称为互斥mutex, 它用于防止多个线程同时访问共享资源.
+            互斥技术采用一个对象控制独占访问权限, 该对象称之为互斥.
+            配合条件变量condition variable, 互斥可以实现广泛的同步访问控制. 例如, 它们允许程序员为数据访问操作指定执行次序.
+
+            在C程序中, 一个互斥采用类型为 mtx_t 的对象表示, 它能在一段时间内被一个线程锁定, 而其他线程必须等待, 直到它被解锁.
+
+            1. 初始化互斥量
+                int mtx_init( mtx_t* mutex, int type );
+                第一个参数mutex, 指向将被初始化的互斥
+                第二个参数type, 设置互斥的属性
+                返回值
+                    成功返回thrd_success, 值为0, 失败则返回错误, 值非0
+                初始化一个互斥, 该互斥的属性由 type 指定.
+                如果成功创建了一个新互斥, 函数 mtx_init() 会将新互斥写入由参数 mutex 引用的对象, 然后返回宏值 thrd_success.
+
+                参数 type 的取值可以是以下四个:
+                    mtx_plain , 一个简单, 无递归的互斥
+                    mtx_timed , 一个无递归, 支持超时的互斥
+                    mtx_plain | mtx_recursive , 一个递归的互斥
+                    mtx_timed | mtx_recursive , 一个递归, 支持超时的互斥
+
+            2. 销毁互斥量
+                void mtx_destroy( mtx_t *mutex );
+                销毁mutex指向的互斥, 并释放它的所有资源
+            
+            3. 加锁
+                int mtx_lock( mtx_t* mutex );
+                阻塞当前线程直到mutex指向的互斥量被锁定.
+                如果当前的线程已经锁定了mutex并且mutex不是递归的, 调用该函数的行为是未定义的
+                之前对同一个互斥量调用mtx_unlock()函数与此操作同步, 任何给定的互斥上的所有锁定/解锁操作形成一个总的顺序(类似于原子操作的修改顺序)
+                成功返回thrd_success, 值为0, 失败则返回错误, 为非0值
+
+                阻塞正在调用的线程, 直到该线程获得参数 mtx 引用的互斥.
+                除该互斥支持递归的情况以外, 正在调用的线程不能是已持有该互斥的线程. 
+                如果调用成功获得互斥, 则函数返回值 thrd_success, 为0值, 否则, 返回值 thrd_error, 为非0值.
+
+                int mtx_trylock( mtx_t *mutex );
+                尝试对mutex指向的还没有被锁定的互斥量加锁.
+                如果mutex已经被锁定了, 那么会立刻返回.
+                之前对同一个互斥量调用mtx_unlock()函数与此操作同步(如果这个操作成功了), 任何给定的互斥上的所有锁定/解锁操作形成一个总的顺序(类似于原子操作的修改顺序)
+                返回值
+                    成功返回thrd_success, 值为0
+                    mutex已经被锁定了或者因为伪造的失败要求一个可用的mutex, 返回thrd_busy
+                    失败则返回错误, 值非0
+
+                int mtx_timedlock( mtx_t *restrict mutex, const struct timespec *restrict time_point );
+                阻塞当前线程直到mutex指向的互斥量被锁定, 或直到由time_point指向的基于TIME_UTC绝对日历时间点到达
+                之前对同一个互斥量调用mtx_unlock()函数与此操作同步(如果这个操作成功了), 任何给定的互斥上的所有锁定/解锁操作形成一个总的顺序(类似于原子操作的修改顺序)
+                成功返回thrd_success, 值为0, 失败则返回错误, 为非0值
+
+                时间在time.h头文件中
+                时间结构: struct timespec;
+
+            4. 解锁
+                int mtx_unlock( mtx_t *mutex );
+                解锁mutex所指向的互斥
+                如果mutex没有被正在调用的线程锁定, 调用该函数的行为是未定义的
+                该函数和后续的mtx_lock(), mtx_trylock(), mtx_timedlock()同步在相同互斥上, 任何给定的互斥上的所有锁定/解锁操作形成一个总的顺序(类似于原子操作的修改顺序)
+                成功返回thrd_success, 值为0, 失败则返回错误, 为非0值
+
+                释放参数 mutex 引用的互斥.
+                在调用函数 mtx_unlock()之前, 调用者必须持有该互斥.
+                如果调用释放互斥成功, 则函数返回值 thrd_success, 为0值, 否则, 返回值 thrd_error, 为非0值.
+
+                通常情况下, 在代码某个关键区间critical section的起始点调用函数 mtx_lock(), 在其结束点调用函数 mtx_unlock(), 在这段区间中只有一个线程执行.
+
+                函数 mtx_lock() 还有两个替代的选择
+                一个选择是函数 mtx_trylock(), 如果该互斥恰好未被其他任何线程获取, 它则为当前线程获得互斥, 如果该互斥被其他线程获取, 它也不会阻塞当前线程.
+                另一个选择是函数 mtx_timedlock(), 它仅在指定的时间内阻塞线程.
+                所有这些函数都通过其返回值表明调用它们后，是否成功地获得了互斥.
+            
+    
+    7) 线程间通信 - 条件变量
+        C11 标准为线程间通信提供了条件变量condition variable
+        线程可以使用条件变量, 以等待来自另一个线程的通知, 通知告知了指定的条件已被满足. 例如, 这类通知可能代表某些数据已经准备好进行处理.
+
+        一般过程如下: 线程获得互斥, 然后测试条件
+                    如果条件不满足, 则线程继续等待条件变量(释放互斥), 直到另一个线程再次唤醒它, 然后该线程再次获得互斥, 并再次测试条件
+                    重复上述过程, 直到条件满足.
+
+        条件变量由类型为 cnd_t 的类型的变量表示, 并配合互斥一起使用.
+
+        (1) 初始化条件变量
+            int cnd_init( cnd_t* cond );
+            初始化cond所指向的条件变量
+            成功返回thrd_success, 值为0, 失败则返回错误, 值非0
+        
+        (2) 销毁条件变量
+            void cnd_destroy( cnd_t* cond );
+            销毁cond所指向的条件变量
+            如果有线程正在等待cond, 该函数行为未定义
+
+        (3) 信号触发
+            int cnd_signal( cnd_t *cond );
+            在等待指定条件变量的任意数量的线程中, 唤醒其中一个线程
+            如果没有线程正被阻塞, 该函数不会做任何事, 并返回thrd_success
+            成功返回thrd_success, 值为0, 失败则返回错误, 值非0
+
+        (4) 广播
+            int cnd_broadcast( cnd_t *cond );
+            唤醒所有等待指定条件变量的线程
+            如果没有线程正被阻塞, 该函数不会做任何事, 并返回thrd_success
+            成功返回thrd_success, 值为0, 失败则返回错误, 值非0
+
+        (5) 等待
+            int cnd_wait( cnd_t* cond, mtx_t* mutex );
+            第一个参数cond, 指向将被锁定的条件变量
+            第二个参数mutex, 指向还在阻塞期间要被当前函数解锁的互斥
+            返回值
+                成功返回thrd_success, 值为0, 失败则返回错误, 值非0
+
+            自动地解锁mutex所指向的互斥, 并阻塞cond所指向的条件变量直到线程被cnd_signal()或cnd_broadcast()函数唤醒, 或伪造的唤醒发生.
+            在函数返回之前, 互斥将在次被互斥.
+            如果互斥已经没有被正在调用的线程锁定, 调用该函数的行为是未定义的.
+
+            阻塞正在调用的线程, 并释放指定的互斥.
+            在调用 cnd_wait() 之前, 线程必须持有互斥.
+            如果另一线程通过发送一个信号解除当前线程的阻塞(也就是说, 通过指定同样的条件变量作为参数调用 cond_signal() 或 cnd_broadcast() )
+            那么调用 cnd_wait() 的线程在 cnd_wait() 返回之前会再次获得互斥.
+
+        (6) 超时等待
+            int cnd_timedwait( cnd_t* restrict cond, mtx_t* restrict mutex, const struct timespec* restrict time_point );
+            第一个参数cond, 指向将被锁定的条件变量
+            第二个参数mutex, 指向还在阻塞期间要被当前函数解锁的互斥
+            第三个参数time_point, 指向一个定义了超时等待时间的对象
+            返回值
+                如果成功, 返回thrd_success, 为0值
+                如果在互斥被上锁前超时, 返回thrd_timedout
+                如果失败则其他错误, 为非0值
+
+            自动地解锁mutex所指向的互斥, 并阻塞cond所指向的条件变量直到线程被cnd_signal()或cnd_broadcast(), 或直到time_point所指向基于TIME_UTC时间到了, 或伪造的唤醒发生.
+            在函数返回之前, 互斥将在次被锁定.
+            如果互斥已经没有被正在调用的线程锁定, 调用该函数的行为是未定义的.
+
+            与 cnd_wait() 类似，cnd_timedwait() 阻塞调用它们的线程, 但仅维持由参数 time_point 指定的时间.
+            可以通过调用函数 timespec_get() 获得一个 struct timespec 对象, 它表示当前时间.
+
+    8) 原子对象, 原子操作
+        注意
+            如果实现版本定义了宏__STDC_NO_ATOMICS__, 则表明该实现版本不支持原子操作, 自然也不能声明原子对象.
+
+        原子对象atomic object是一个可通过原子操作atomic operation被读取或修改的对象.
+        原子操作是指不能被并行线程中断的操作.
+        
+        在C11标准下, 可以使用类型限定符_Atomic声明一个原子对象.
+        如
+            _Atomic long counter = ATOMIC_VAR_INIT(0L);   // counter为一个原子对象
+        上述声明定义了原子化的 long 类型变量 counter, 并将其值初始化为 0.
+        在头文件 stdatomic.h 中定义了宏 ATOMIC_VAR_INIT, 以及其他所有用于原子对象的宏, 类型和声明.
+        特别是, stdatomic.h 中还定义了对应于所有整数类型的原子类型缩写.
+        如
+            类型 atomic_uchar 等效于 _Atomic unsigned char
+
+        语法 _Atomic(T) 也可用于为给定的非原子类型 T 指定其对应的原子类型
+        数组和函数类型不能为原子类型. 
+        然而, 原子类型可以具有不同于其对应的非原子类型的空间大小和对齐方式.
+
+        原子操作
+            读取或写入一个原子对象是一个原子操作, 也就是说它是不能被中断的操作.
+        这意味着: 不同的线程可以同时访问一个原子对象而不引起竞态条件. 
+                 对于每个原子对象, 对象的所有修改以一个确定的全局化次序执行, 这称为该对象的修改次序modification order.
+
+        具有结构或联合类型的原子对象只能被作为一个整体读取或写入: 为了安全地访问单个成员, 原子结构或联合应首先复制到等效的非原子对象中.
+
+        注意
+            无论是使用宏 ATOMIC_VAR_INIT, 还是通过泛型函数 ATOMIC_INIT(), 一个原子对象的初始化不是一个原子操作.
+
+        原子操作通常用于进行读-修改-写操作.
+        如
+            后缀自增和自减运算符 ++ 和 --, 当它们应用于原子对象时, 是原子化的读-修改-写操作.
+            同样, 复合赋值运算符, 如 +=, 当其原子化使用时, 他们的左操作数是一个原子对象.
+
+        声明变量 counter 作为原子对象, 在不受任何其他影响下执行正确的计数, 以最终获得 0 值. 
+        如果通过counter原子变量进行计数比使用互斥锁效率要高.
+
+        除了已经提到的运算符, 还有许多函数可以执行原子操作, 包括 atomic_store(), atomic_exchange(),  atomic_compare_exchange_strong()
+
+        原子类型具有无锁lock-free属性, 他表示不使用锁定和解锁操作实现对一个原子对象的原子访问.
+        该方式只需要使用类型 atomic_flag(它是一个结构类型)以确保实现无锁, atomic_flag 有"设置"和"清除"两种状态.
+        宏 ATOMIC_FLAG_INIT 将一个 atomic_flag 对象初始化为"清除"状态，
+        如以下示例声明:
+            atomic_flag done = ATOMIC_FLAG_INIT;
+
+        C11 提供了函数 atomic_flag_test_and_set() 和 atomic_flag_clear(), 由此对一个 atomic_flag 对象执行状态操作.
+        整型原子类型通常也都是无锁的. 要确定一个给定的类型是否是无锁的, 程序可以检查宏 ATOMIC_type_LOCK_FREE, 其中 type 是一个指定整数类型的大写缩写块, 如 BOOL, INT 或 LLONG.
+
+        与指针类型对应的宏是 ATOMIC_POINTER_LOCK_FREE.
+        所有这些宏的值可能为 0, 1 或 2. 
+        值为 0, 表示该类型不是无锁的
+        值为 1, 表示该类型对特定对象是无锁的
+        值为 2, 表示该类型始终是无锁的
+        或者, 可以调用泛型函数来确定一个给定的原子对象是否是无锁的
+            _Bool atomic_is_lock_free(const volatile A *obj);
+
+        在函数参数声明中的占位符A代表任一原子类型. 因此, 参数 obj 为指针, 它指向任一给定原子对象.

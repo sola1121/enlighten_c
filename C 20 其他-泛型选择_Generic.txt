@@ -1,0 +1,64 @@
+在程序设计中, 泛型编程generic programming指那些没有特定类型, 但是一旦指定一种类型, 就可以转换成指定类型的代码.
+例如, C++在模板中可以创建泛型算法, 然后编译器根据指定的类型自动使用实例化代码. C没有这种功能.
+
+C11新增泛型选择表达式generic selection expression
+可根据表达式的类型, 即表达式的类型是int, float还是其他类型, 选择一个值.
+泛型表达式不是预处理器指令, 但是在一些泛型编程中他常用做#define宏定义的一部分.
+
+_Generic关键字
+    C11标准新增_Generic关键字
+    _Generic(), 圆括号中包含多个用逗号分隔的项.
+    第一项, 是一个表达式, 后面的每个项都是由一个类型, 一个冒号, 一个值组成
+    第一项的类型匹配后面哪个项的类型标签, 其对应值就为该类型标签冒号后的值, 若没有满足条件, 则为default标签后的值
+    如
+        _Generic(x, int: 0, float: 1, double: 2, default: 3)
+    假设表达式x是int类型的变量, x的类型匹配int标签, 那么整个表达式的值就是0.
+    如果没有与类型匹配的标签, 表达式的值就是default标签冒号后的值.
+    泛型选择语句与switch语句类似, 只是前者用表达式的类型匹配标签, 后者用表达式的值匹配标签.
+
+    如, 判断所输入数据类型
+        # define TYPE(value) _Generic((value), \
+            int: "int", \
+            float: "float", \
+            double: "double", \
+            char *: "char *", \
+            default: "其他" \
+        )
+    输入表达式, 将会返回其值的类型描述的字符串
+
+    泛型选择构建可以处理不同类型的宏函数
+        # define GenFunc(value) _Generic((value), \
+            Type1: FuncPt1, \
+            Type2: FuncPt2, \
+            ...
+            default: FuncPtn \
+        ) ((value))
+    该宏函数通过_Generic在源码预处理时获得不同类型的处理函数名, 在C源码中就是函数指针, 并在最后与圆括号, 参数结合, 形成传参调用
+    预编译完成后在源码中替换为 对应类型的函数名((value)) , 即传参调用对应函数
+    调用方式和C函数一样
+        GenFunc(value);
+
+    如果单单是获得函数名
+        # define GenFunc(value) _Generic((value), \
+            Type1: FuncPt1, \
+            Type2: FuncPt2, \
+            ...
+            default: FuncPtn \
+        )
+    该宏函数通过_Generic在源码预处理时获得不同类型的处理函数名, 在C源码中就是函数指针, 但是没有调用
+    预编译完成后在源码中替换为 对应类型的函数名, 仅仅获得函数指针, 而没有调用
+    调用方式
+        GenFunc(value)(value);
+        或
+        (*GenFunc(value))(value);
+
+    在_Generic()中直接运行函数, 并返回该函数返回值
+    这就相当于使用宏函数预先处理不同类型的变量, 然后将处理后的内容作为结果放入源码
+        # define GenFunc(value) _Generic((value), \
+            Type1: FuncPt1(value), \
+            Type2: FuncPt2(value), \
+            ...
+            default: FuncPtn(value) \
+        )
+    该宏函数通过_Generic在源码预处理时将值替换入对应的函数, 调用该函数后, 将函数返回值返回
+    预编译完成后在源码中替换为 对应类型的函数运算后的结果

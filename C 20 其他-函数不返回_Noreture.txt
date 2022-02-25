@@ -1,0 +1,27 @@
+C11新增关键字 _Noreturn
+    _Noreturn与inline一样, 都是函数说明符
+    在标准库stdnoreturn.h 头文件中, 定义为noreturn
+    _Noreturn表明调用完成后函数不凡会主调函数.
+    如
+        _Noreturn shout_down(){
+            ...
+        }
+
+    _Noreturn的目的是告诉用户和编译器, 这个特殊的函数不会把控制返回主调函数.
+    告诉用户以免滥用该函数, 通知编译器可优化一些代码.
+
+    与void类型有着根本上的区别
+        void类型的函数在执行完毕后返回主调函数, 只是他不提供返回值.
+        _Noreturn函数压根不返回.
+
+    如
+        exit()函数就是_Noreturn函数的一个示例.
+
+    在标准库stdlib.h 头文件中
+        abort()
+        exit()
+        _Exit()
+        quick_exit()
+        thrd_exit()
+        longjmp()
+    都是_Noreturn类型函数
