@@ -6,7 +6,9 @@
         "uchar.h": "c",
         "stdarg.h": "c",
         "tgmath.h": "c",
-        "assert.h": "c"
+        "assert.h": "c",
+        "unistd.h": "c",
+        "types.h": "c"
     },
     "commentTranslate.hover.enabled": true
 }
