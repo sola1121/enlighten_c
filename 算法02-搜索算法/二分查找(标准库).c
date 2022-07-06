@@ -2,7 +2,7 @@
 # include "stdlib.h"
 
 /*
-标准库stdlib.h中提供的折半查找算法
+标准库stdlib.h中提供的折半查找算法(二分查找)
 void* bsearch (const void* key, const void* base,
                size_t num, size_t size,
                int (*compar)(const void*,const void*));
@@ -42,13 +42,16 @@ int main ()
     int * pItem;
     int key = 40;
 
-    qsort (values, 6, sizeof (int), compareints);   // 折半查找只能对有序数列进行查找, 所以这里使用快速排序
+    // 折半查找只能对有序数列进行查找, 所以这里使用快速排序将数组升序排列
+    qsort (values, 6, sizeof (int), compareints);
+
+    // 使用折半查找找到查找值位置
     pItem = (int*) bsearch(&key, values, 6, sizeof (int), compareints);
 
     if (pItem!=NULL)
-        printf("%d is in the array.\n",*pItem);
+        printf("%d is in the array.\n", *pItem);
     else
-        printf("%d is not in the array.\n",key);
+        printf("%d is not in the array.\n", key);
 
     return 0;
 }

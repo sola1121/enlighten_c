@@ -35,8 +35,8 @@ int main(int argc, char *argv[]){
     }
 
     if ( (dest_fp=fopen(new_name, "wb")) == NULL ){
-        perror("目标文件打开失败.")
-        ;exit(EXIT_FAILURE);
+        perror("目标文件打开失败.");
+        exit(EXIT_FAILURE);
     }
 
     while ((bytes=fread(temp, sizeof(char), 64, src_fp)) > 0) {

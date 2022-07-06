@@ -2,6 +2,12 @@
 # include "stdlib.h"
 # include "string.h"
 
+
+/*
+    因为是倒着遍历的, 所以对于多字节字符会打印出错
+*/
+
+
 # define NAMELEN 256
 # define CTRL_Z '\032'   // DOS文本文件中的文件结尾
 
