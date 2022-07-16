@@ -28,7 +28,7 @@ int binary_search(const int array[], int left, int right, int value) {
 	if (left > right)
 		return -1;
 
-	int mid = left + (right - left) / 2;    // 直接平均可能會溢位，所以用此算法
+	int mid = left + (right - left) / 2;    // NOTE: 直接平均可能會溢位，所以用此算法
 	if (array[mid] > value)   // 中间元素大于查找值, right向左取小
 		return binary_search(array, left, mid - 1, value);
 	else if (array[mid] < value)   // 中间元素小于查找值, left向右取大

@@ -61,7 +61,7 @@ void insertion_sort(int array[], size_t len){
     for (m=1; m<len; m++){
         key = array[m];   // 从未处理中取出待处理元素
         n = m - 1;   // 找到当前已排序的表尾
-        while ((n>=0) && (array[n]>key)){
+        while ((n>=0) && (array[n]>key)){   // 因为是从后向前遍历, 所以当后面的array[n] 大于 当前key, 就将其插入key的后面
             array[n+1] = array[n];   // 元素后移一位
             n--;
         }

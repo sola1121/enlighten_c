@@ -64,12 +64,12 @@ int binary_search(int array[], size_t len, int value){
     right = len - 1;   // 起始为数组尾元素
 
     while (left<=right){
-        mid = left + (right - left) / 2;   //直接平均可能会溢位，所以用此算法
+        mid = left + (right - left) / 2;   // NOTE: 直接平均可能会溢位，所以用此算法
         if (array[mid] == value)   // 此时中间值正好是查找值
             return mid;
         else if (array[mid] < value)   // 此时中间值小于查找值, left向右取大
             left = mid;
-        else if (array[mid] >= value)   // 此时中间值大于查找值, right向左取小
+        else if (array[mid] > value)   // 此时中间值大于查找值, right向左取小
             right = mid;
     }
 
