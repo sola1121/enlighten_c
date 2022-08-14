@@ -7,7 +7,7 @@
     从开始到数组中间, 交换前部和后部的元素
     i与length-1-i互相交换
 */
-void invert(int array[], int length){
+void reverse(int array[], int length){
     int temp;
     for (int i=0; i<length/2; i++){
         temp = array[i];
@@ -31,7 +31,7 @@ int main(){
     puts("当前数组: ");
     output(array, LEN);
 
-    invert(array, LEN);
+    reverse(array, LEN);
     puts("\n逆置后数组: ");
     output(array, LEN);
     

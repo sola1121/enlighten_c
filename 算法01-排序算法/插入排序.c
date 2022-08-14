@@ -65,6 +65,6 @@ void insertion_sort(int array[], size_t len){
             array[n+1] = array[n];   // 元素后移一位
             n--;
         }
-        array[n+1] = key;
+        array[n+1] = key;   // 腾出来的空位置插入元素
     }
 }
