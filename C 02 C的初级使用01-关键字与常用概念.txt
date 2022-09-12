@@ -73,7 +73,7 @@ main函数
     圆括号表明这是一个函数, 一般函数通过圆括号运算符进行调用. 如: func(); 属于表达式语句.
     int 说明其会return 一个int类型的数据.
     在括号中, 还可以接收参数, 最简单就是 int main (void); , 表示接受一个空参数.
-    还有 int main(int args, char * argvs[]); , 表明接受args个argvs数组, 且该数组使字符串数组.
+    还有 int main(int args, char * argvs[]); , 表明接受具有args个char*元素的argvs数组.
 
 
 花括号
@@ -87,7 +87,7 @@ main函数
 变量的声明 declaration
     声明是C语言最重要的特性之一. 其会完成两件事情.
     int num = 1;
-    一, 让编译器分配一个int型大小的内存, 保存字面常量1(初始化)
+    一, 让编译器分配一个int型大小的内存, 在该内存地址保存字面常量1(初始化)
     二, 将这块内存命名为num, 这就称为了变量.
     num 是一个标识符(变量名) identifier
 
