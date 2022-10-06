@@ -24,5 +24,14 @@ int main(){
 
     printf("根据浮点数值不同, 自动选择: %g, %g, %G\n", pi, square, square*346237.98);
 
+
+    long y = -43456;
+    // -标记左对齐,
+    // 0标记对于数值格式, 用前导0代替空格填充字段宽度. 对于整数格式, 如果出现-标记或指定精度, 则忽略该0标记
+    printf("y=%-8ld\n", y);
+    printf("y=%-08ld\n", y);
+    printf("y=%08ld\n", y);
+    printf("y=%+8ld\n", y);
+
     return 0;
 }

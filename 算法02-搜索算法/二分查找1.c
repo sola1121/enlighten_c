@@ -39,16 +39,17 @@
 
 
 int binary_search(int [], size_t, int);
+int binary_search2(int [], size_t, int);
 
 
 int main(){
-    int array[LEN] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};   // 所要查找的有序数组
+    int array[LEN] = {1, 2, 3, 4, 5, 5, 7, 8, 9, 10};   // 所要查找的有序数组
     for (int i=0; i<LEN; i++)
         printf("%4d", array[i]);
     putchar('\n');
 
-    const int value = 1;
-    int ret = binary_search(array, LEN, value);
+    const int value = 5;
+    int ret = binary_search2(array, LEN, value);
     printf("\n查询值 %d, 在数组中的位置 %d\n", value, ret);
 
     return 0;
@@ -70,6 +71,30 @@ int binary_search(int array[], size_t len, int value){
         else if (array[mid] < value)   // 此时中间值小于查找值, left向右取大
             left = mid;
         else if (array[mid] > value)   // 此时中间值大于查找值, right向左取小
+            right = mid;
+    }
+
+    return -1;
+}
+
+
+// 二分查找, 查找升序排列并有重复元素的数组, 返回第一个符合元素的位置
+int binary_search2(int array[], size_t len, int value){
+    int mid;
+    int left, right;
+
+    left = 0;
+    right = len - 1;
+
+    while (left<=right){
+        mid = left + (right - left) / 2;
+        if (array[mid] == value) {
+            for (; array[mid-1]==value&&mid>=0; mid--)   // 从当前找到的元素, 向前看是否是重复值, 返回前面的
+                continue;
+            return mid+1;
+        } else if (array[mid] < value)
+            left = mid;
+        else if (array[mid] > value)
             right = mid;
     }
 
