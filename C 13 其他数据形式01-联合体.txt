@@ -1,5 +1,5 @@
 联合 union
-    联合是一种数据类型, 他能在同一个内存空间中存储不同的数据类型(不是同时存储).
+    联合, 又称共用体, 是一种数据类型, 他能在同一个内存空间中存储不同的数据类型(不是同时存储).
 
     联合使用与结构相同的语法. 然而联合的成员共享一个共同的存储空间.
     联合同一时间内只能存储一个单独的数据项, 不像结构那样同时存储多种数据类型.
@@ -40,37 +40,51 @@
             double price;
             char letter;
         } value;
+    
+    注意
+        不能在定义联合变量的时候赋初值
 
 
 赋值联合变量
-    需要注意的是, 联合只能存储一个值.
+    需要注意的是, 联合只能存储一个值, 之前存储的值会在下一次赋值时候被覆盖
+    不能在定义联合变量的时候赋初值.
+    联合不能对联合变量整体赋值.
 
-    初始化联合变量第一个成员
-        union data value = 32;   // 为第一个成员, 即int型的number赋值
+    声明一个联合, 并初始化一个成员, 需先进行声明, 然后指定成员赋值
+        union data value;
+        value.letter = 'a';
+
+    为第一个成员成员赋值
+        value.number = 32;   // 为第一个成员, 即int型的number赋值
+    将会覆盖掉成员letter的值, 而仅有成员number有值.
+
+    以上&value.letter, &value.number地址都是相同的
 
     把一个联合初始化为另一个同类型的联合
         union data value1;
-        union data value2 = 48;
+        union data value2;
+        value2.number = 48;
         value1 = value2;   // 使用另一同类型联合赋值
 
     根据C99的指定初始化器
         union data value = {.double=6.5};   // 指定初始化器
-
-    先进行声明, 然后指定成员赋值
-        union data value;
-        value.letter = 'a';
 
 
 使用联合中的成员
 
     使用.点运算符访问联合变量中的成员. 因为在联合变量中, 一次只存储一个值.
     要留意存有值的成员, 此时没有值的成员显示为应类型的零值, 其中并没有任何内容.
-        union data value = 32;   // 成员number值
+        union data value = 32;   // 错误, 联合不能对联合变量整体赋值
         value.letter = 'a';   // 清除number值, 赋值letter
 
     使用->运算符访问联合指针变量中的成员
         union data *pt;
         pt->letter;   // 成员letter, 为char类型变量
+
+    注意
+        联合不能作为函数参数
+        不能用函数返回联合变量
+        可以定义联合数组, 联合成员可以是数组
 
 
 联合的实际使用

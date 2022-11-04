@@ -245,7 +245,14 @@ C标准库 ctype.h
         int islower( int ch );   判断单个字符是否为小写, 如果是则返回true, 否则返回false
         int isupper( int ch );   判断单个字符是否为大写, 如果是则返回true, 否则返回false
         int isspace( int ch );   判断单个字符是否为空白字符, 包括制表符\t, 回车符\r, 换行符\n等, 如果是则返回true, 否则返回false
-        int isprint( int ch );   判断单个字符是否可以打印, 如果是则返回true, 否则返回false
+        int isprint( int ch );   判断单个字符是否可以打印, 包括空格, 如果是则返回true, 否则返回false
+        int isgraph( int ch );   判断单个字符是否可以打印, 不包括空格 , 如果是则返回true, 否则返回false
+        int isalpha( int ch );   判断单个字符是否为字母, 如果是则返回true, 否则返回false
+        int isalnum( int ch );   判断单个字符是否为字母或数字, 如果是则返回true, 否则返回false
+        int isdigit( int ch );   判断单个字符是否为数字, 如果是则返回true, 否则返回false
+        int isxdigit( int ch );  判断单个字符是否为一个十六进制数字字符, 如果是则返回true, 否则返回false
+        int ispunt( int ch );    判断单个字符是否为标点字符, 不包括空格, 即字母, 数字, 和空格以外所有可打印字符, 如果是则返回true, 否则返回false
+        int iscntrl( int ch );   判断单个字符是否为控制字符, ASCII范围在0~0x1F, 如果是则返回true, 否则返回false
 
         int tolower( int ch );   将单个字符转换为小写并返回
         int toupper( int ch );   将单个字符转换为大写并返回 
