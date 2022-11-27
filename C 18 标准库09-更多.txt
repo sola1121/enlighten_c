@@ -139,4 +139,11 @@
 
 宽字符分类和映射工具 wctype.h
     wctype.h库提供了一些与ctype.h中的字符函数类似的宽字符函数, 以及其他函数.
-   
+
+
+POSIX操作系统API访问unistd.h 
+    unistd是Unix Standard的缩写.
+    unistd.h 是C和C++程序设计语言中提供对POSIX操作系统API的访问功能的头文件的名称.
+    该头文件由POSIX.1标准(单一UNIX规范的基础)提出, 故所有遵循该标准的操作系统和编译器均应提供该头文件.
+
+    常用系统功能如文件读写read, write, close, seek, 多进程fork, pipe

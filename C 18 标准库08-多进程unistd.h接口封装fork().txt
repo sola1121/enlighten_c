@@ -92,7 +92,7 @@
     该头文件由POSIX.1标准(可移植系统接口)提出, 故所有遵循该标准的操作系统和编译器均应提供该头文件(如Unix的所有官方版本, 包括 Mac OS X, Linux等).
 
     对于类Unix系统, unistd.h头文件中所定义的接口通常都是大量针对系统调用的封装wrapper functions
-    如, fork(), pipe() 以及 各种I/O原语(read, write, close 等等).
+    如, fork(), pipe() 以及 各种I/O原语(read, write, close, seek等等).
     类似于Cygwin和MinGW的Unix兼容层也提供相应版本的 unistd.h.
 
     1) 创建进程

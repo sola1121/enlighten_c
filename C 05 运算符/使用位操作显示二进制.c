@@ -29,7 +29,8 @@ int main(){
     return 0;
 }
 
-// 将整数转换为二进制字符
+
+// 使用右移操作与位与运算, 将整数转换为二进制字符
 char * int_to_binary(int num, char *pt){
     int i;
     const int size = CHAR_BIT * sizeof(int);
@@ -38,6 +39,18 @@ char * int_to_binary(int num, char *pt){
         pt[i] = (01 & num) + '0';
     
     pt[size] = '\0';
+
+    return pt;
+}
+
+
+// 使用取模运算, 将整数转换为二进制字符
+char * int_to_binary2(int num, char *pt){
+    int i;
+    const int size = CHAR_BIT * sizeof(int);
+
+    for (i=size-1; i>=0; i--, num/=2)
+        pt[i] = num%2 + '0';
 
     return pt;
 }
@@ -55,7 +68,7 @@ void show_binary_string(const char * bin_str){
 }
 
 
-// 将所给给后bits位取反
+// 将所给num的后bits位取反
 int invert_end(int num, int bits){
     int mask = 0;
     int bit_val = 1;
