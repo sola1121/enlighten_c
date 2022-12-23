@@ -163,8 +163,8 @@ fclose()函数
             int m, n;
             char *str, ch;
             ...
-            fscanf(fp, "%d %s", &m, str);   // 从指定文件流fp读取格式化输入给m, str
-            fprintf(fp,"%d %c", n, ch);    // 将n, ch按格式化输出到指定文件流fp
+            fscanf(fp, "%d - %s", &m, str);   // 从指定文件流fp读取格式化输入给m, str
+            fprintf(fp,"%d - %c", n, ch);    // 将n, ch按格式化输出到指定文件流fp
 
     fgets(), fputs()函数
 
