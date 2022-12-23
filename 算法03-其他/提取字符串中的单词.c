@@ -43,7 +43,7 @@ void output(char * str, size_t len){
 */
 void output_word(char *str){
     size_t count = 0;   // 当前单词的长度
-    int sign = 0;   // 当前字符前是否是空格, 如果是, 将left定位到新的单词开头
+    int sign = 0;   // 当前字符前驱是否是空格, 如果是, 将left定位到新的单词开头
     char * left, * right;
     left = right = str;
 
