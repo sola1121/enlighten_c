@@ -151,11 +151,11 @@ fclose()函数
         这两个函数的工作方式与scanf()和printf()类似, 区别在于fscanf()和fprintf()需要用第一个参数指定待处理文件.
 
         int fscanf ( FILE * stream, const char * format, ... );
-            从指定文件流中读取格式化输入
+            从文件流中把格式化字串读入指定变量列表
             如果成功, 返回成功匹配和赋值的个数, 如果到达文件尾或发生读错误, 则返回EOF
 
         int fprintf ( FILE * stream, const char * format, ... );
-            把格式化输出写入指定文件流
+            从变量列表把格式化字串输出到指定文件流
             如果成功, 则返回写入的字符总数, 否则返回一个负数
 
         例
