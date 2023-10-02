@@ -120,7 +120,7 @@
         # undef LIMIT   // 移除#define定义的宏
         使用undef移除LIMIT后, 就可以重新将LIMIT定义为一个新的值了.
         即使原来没有定义LIMIT, 取消LIMIT的定义仍然有效.
-        如果想使用一个名称, 又不确定之前是否使用过, 为了安全起见, 可以用#undef治理该取消该名称的定义.
+        如果想使用一个名称, 又不确定之前是否使用过, 为了安全起见, 可以用#undef取消该名称的定义.
 
         (1) 预处理器如何看已定义和未定义
             预处理器在识别标识符时, 遵循C命名规则, 标识符可以由大写字母, 小写字母, 数字, 下划线字符组成, 且首字符不能是数字.
@@ -160,39 +160,39 @@
         __VA_ARGS__展开为二个参数, "参数%d\n" 和 num, 展开后的代码是printf("参数%d\n", num);
 
     7) 使用例子
-        一般将宏用来代表简短的表达式比较合适
-        例子
-            # define PI 3.141592
-            # define CIRCLE(R) printf("圆的周长:%lf, 圆的面积:%lf\n", (2*PI*(R)), (PI*(R)*(R)))
-            ...
-            CIRCLE(redius);
+        (1) 一般将宏用来代表简短的表达式比较合适
+            例子
+                # define PI 3.141592
+                # define CIRCLE(R) printf("圆的周长:%lf, 圆的面积:%lf\n", (2*PI*(R)), (PI*(R)*(R)))
+                ...
+                CIRCLE(redius);
 
-        拼接字符串逐级使用宏
-        例子
-            # define PR printf
-            # define INTEGER "输出: %d"
-            # define ENDLN "\n"
+        (2) 拼接字符串逐级使用宏
+            例子
+                # define PR printf
+                # define INTEGER "输出: %d"
+                # define ENDLN "\n"
 
-            # define PRINT_1 INTEGER ENDLN
-            # define PRINT_2 INTEGER INTEGER ENDLN
-            ...
-            int a=1, b=2;
-            PR(PRINT_1, a);
-            PR(PRINT_2, a, b);
-            ...
-            可以使用puts(PRINT_1); 来查看拼和置换后的字符串
+                # define PRINT_1 INTEGER ENDLN
+                # define PRINT_2 INTEGER INTEGER ENDLN
+                ...
+                int a=1, b=2;
+                PR(PRINT_1, a);
+                PR(PRINT_2, a, b);
+                ...
+                可以使用puts(PRINT_1); 来查看拼和置换后的字符串
 
-            若使用#undef ENDLN 释放, 那么PRINT_1和PRINT_2 就都没法用了
+                若使用#undef ENDLN 释放, 那么PRINT_1和PRINT_2 就都没法用了
 
-            可以发现, 如果是纯字符型的, 原内容需使用双撇号括起来, 这样会自动拼接
-        
-        #运算符, ##运算符, 变参宏配合使用
-        例子
-            # define XNAME(n) X ## n
-            # define PR(X) printf("变量名: " #X ", 对应值为: ", __VA_ARGS__)
-            ...
-            int XNAME(1) = 32;
-            PR(XNAME(1), "%d\n", XNAME(1));
+                可以发现, 如果是纯字符型的, 原内容需使用双撇号括起来, 这样会自动拼接
+            
+        (3) #运算符, ##运算符, 变参宏配合使用
+            例子
+                # define XNAME(n) X ## n
+                # define PR(X) printf("变量名: " #X ", 对应值为: ", __VA_ARGS__)
+                ...
+                int XNAME(1) = 32;
+                PR(XNAME(1), "%d\n", XNAME(1));
 
 
 2. 宏与函数的选择
@@ -211,5 +211,5 @@
         2) 用圆括号把宏的参数和整个替换体括起来. 这样能确保被括起来的部分在运算中的完整性以确保运算的顺序.
         3) 用大写字母表示宏函数的名称. 这不仅是惯例, 而且还能提醒使用者宏可能产生的副作用.
         4) 如果打算使用宏来加快程序的运行速度, 那么首先要确定使用宏和使用函数是否会导致较大的差异.
-           在程序中只使用一次的宏无法明显加烧程序的运行时间. 在嵌套循环中使用宏更有助于提高效率.
+           在程序中只使用一次的宏无法明显改善程序的运行时间. 在嵌套循环中使用宏更有助于提高效率.
            许多系统提供程序分析器以帮助程序员压缩程序中最耗时的部分.

@@ -153,7 +153,7 @@
         如果一个源代码文件使用外部变量定义在另一个源代码文件中, 则必须用extern在该文件声明该变量
             int ex_num;            // 外部定义的变量
             double ex_array[10];   // 外部定义的数组
-            extern char ex_ch;     // 从另一个文件引入
+            extern char ex_ch;     // 从另一个文件引入, 需是另一个文件的全局变量
             
             void next();
 
