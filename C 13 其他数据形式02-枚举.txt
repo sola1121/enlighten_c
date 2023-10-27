@@ -23,6 +23,8 @@
         enum spectrum color;
         声明color为对应的枚举类型变量.
         对于enum spectrum类型的枚举变量, color可对应的值为枚举符red, orange, yellow, ...等
+        
+        注意, 声明的枚举变量其值仅能是枚举类型中有的枚举常量值.
 
     使用示例
         int num;
