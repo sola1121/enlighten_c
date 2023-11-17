@@ -14,7 +14,7 @@ int main() {
     for (int k=0; k<NUM; k++) loop[k]=1;
 
     int total=NUM,   // 总人数 
-        count=0,     // 当前报数
+        count=1,     // 当前报数
         gap = 3,    // 间隔指定数, 报到该数的人出圈
         i = 0;      // 游标, 从第一个人开始
 
@@ -23,7 +23,7 @@ int main() {
     while (total>1) {
         if (loop[i] && count==gap) {   // 人没有出圈, 且到了报到了间隔指定数, 该人出圈
             loop[i] = 0;
-            count = 0;
+            count = 1;
             total -= 1;
             printf("第 %d 人出圈\n", i+1);
         }
