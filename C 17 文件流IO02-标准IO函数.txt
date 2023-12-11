@@ -161,7 +161,7 @@ fgetc()和fputc()函数, 宏定义getc, putc
             如果成功, 返回成功匹配和赋值的个数, 如果到达文件尾或发生读错误, 则返回EOF
 
         int fprintf ( FILE * stream, const char * format, ... );
-            即 fprintf(文件指针, 格式控制字符串, 输入项列表)
+            即 fprintf(文件指针, 格式控制字符串, 输出项列表)
             从变量列表把格式化字串输出到指定文件流
             如果成功, 则返回写入的字符总数, 否则返回一个负数
 
